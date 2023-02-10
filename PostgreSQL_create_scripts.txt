@@ -1,0 +1,49 @@
+-- PostgreSQL Script to create database tables --
+CREATE TABLE users
+(
+    id          SERIAL PRIMARY KEY UNIQUE,
+    first_name  VARCHAR(300),
+    last_name   VARCHAR(300),
+    email       VARCHAR(500),
+    phone_num   VARCHAR(20)
+);
+
+CREATE TABLE vehicle_types
+(
+    id          SERIAL PRIMARY KEY UNIQUE,
+    name        VARCHAR(500)
+);
+
+CREATE TABLE vehicles
+(
+    id              SERIAL PRIMARY KEY UNIQUE,
+    model_name      VARCHAR(300),
+    color           VARCHAR(300),
+    max_capacity    INT DEFAULT 0,
+    daily_price     DECIMAL(10,2),
+    v_type          INT,
+    is_taken        INT,
+    curr_user_id    INT,
+    FOREIGN KEY (v_type) REFERENCES vehicle_types(id),
+    FOREIGN KEY (curr_user_id) REFERENCES users(id)
+);
+
+CREATE TABLE transaction_types
+(
+    id      SERIAL PRIMARY KEY,
+    name    VARCHAR(300)
+);
+
+CREATE TABLE transaction_history
+(
+    id                  SERIAL UNIQUE,
+    timestamp           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_id             INT,
+    vehicle_id          INT,
+    total_amount        DECIMAL(10,2),
+    rental_begin_date   DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    rental_due_date     DATE NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id)
+);
+
