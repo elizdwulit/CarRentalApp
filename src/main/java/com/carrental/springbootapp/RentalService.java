@@ -1,6 +1,9 @@
 package com.carrental.springbootapp;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -9,16 +12,13 @@ import java.util.stream.Collectors;
 public class RentalService {
 
     /** Manager used to handle all database interactions */
-    DatabaseManager dbManager;
+    private DatabaseManager dbManager;
 
     /** Map used to store all vehicle information */
-    Map<Integer, Vehicle> vehicleMap = new HashMap<>();
-
-    /** Set of ids of all vehicles that are currently available to rent */
-    Set<Integer> availableVehicleIds = new HashSet<>();
+    private Map<Integer, Vehicle> vehicleMap = new HashMap<>();
 
     /** Map used to store information of users registered in the system */
-    Map<Integer, User> usersMap = new HashMap<>();
+    private Map<Integer, User> usersMap = new HashMap<>();
 
     /**
      * Constructor
@@ -32,10 +32,6 @@ public class RentalService {
      */
     public void loadVehicles() {
         vehicleMap = dbManager.getAllVehicles();
-        availableVehicleIds = vehicleMap.entrySet().stream()
-                .filter(mapEntry -> !mapEntry.getValue().isTaken())
-                .map(mapEntry -> mapEntry.getKey())
-                .collect(Collectors.toSet());
     }
 
     /**
@@ -55,15 +51,21 @@ public class RentalService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get set containing the ids of all vehicles that are currently available to rent
-     *
-     *  @return Set of available vehicle ids (can be empty)
-     */
-    public Set<Integer> getAllAvailVehicleIds() {
-        return availableVehicleIds;
-    }
 
+    /**
+     * Get list of vehicles that meet requested trait requirements
+     * @param color
+     * @param maxCapacity
+     * @param maxPrice
+     * @param vtype
+     * @return
+     */
+    public List<Vehicle> getFilteredVehicles(String color, int maxCapacity, String maxPrice, int vtype) {
+        return vehicleMap.values().stream()
+                .filter(v -> !v.isTaken() && v.getColor().equalsIgnoreCase(color) && v.getMaxCapacity() >= maxCapacity
+                        && v.getPricePerDay() <= Integer.parseInt(maxPrice) && v.getType() == vtype)
+                .collect(Collectors.toList());
+    }
     /**
      * Handles renting a vehicle
      *
@@ -103,8 +105,9 @@ public class RentalService {
         // get existing user id, or add new user and get their assigned id
         int userId = getUserId(firstName, lastName, email, phoneNum);
 
+        int transactionBuyType = 1;
         // after user is found or added, do the transaction
-        boolean transactionSuccess = dbManager.addTransactionEntry(userId, vehicleId, totalCost);
+        boolean transactionSuccess = dbManager.addTransactionEntry(userId, vehicleId, totalCost, transactionBuyType);
         if (!transactionSuccess) {
             System.out.println("RentalFunctions.rentVehicle -- Failed to make transaction");
             System.out.println("RentalFunctions.rentVehicle -- END2");
@@ -119,8 +122,6 @@ public class RentalService {
             return false;
         }
 
-        // after rental is completed, remove the vehicle from the available vehicles set
-        availableVehicleIds.remove(vehicleId);
         // also update the vehicle map's vehicle object
         foundVehicle.setAvailable(false);
         vehicleMap.put(vehicleId, foundVehicle);

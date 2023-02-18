@@ -3,10 +3,10 @@ package com.carrental.springbootapp;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @RestController
 public class RentalController {
@@ -25,11 +25,23 @@ public class RentalController {
         return vehicles;
     }
 
-    @PostMapping(path = "/rent",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public void rentCar() {
-        //return "{ true }";
+    @GetMapping("/getFilteredVehicles")
+    public List<Vehicle> getFilteredVehicles(
+            @RequestParam("color") Optional<String> color,
+            @RequestParam("maxCapacity") Optional<Integer> maxCapacity,
+            @RequestParam("maxPrice") Optional<String> maxPrice,
+            @RequestParam("vtype") Optional<Integer> vehicleType) {
+        return new ArrayList<Vehicle>();
     }
 
+    @PostMapping(path = "/rent", produces = {"text/plain", "application/*"})
+    public void rentVehicle(
+            @RequestParam("vehicleId") Optional<Integer> vid,
+            @RequestParam("userFname") Optional<String> fname,
+            @RequestParam("userLname") Optional<String> lname,
+            @RequestParam("email") Optional<String> email,
+            @RequestParam("phoneNum") Optional<String> phoneNum
+    ) {
+        //return "{ true }";
+    }
 }

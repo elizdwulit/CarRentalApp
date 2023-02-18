@@ -1,9 +1,7 @@
 package com.carrental.springbootapp;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -111,18 +109,23 @@ public class DatabaseManager {
      * Mark a vehicle as taken or not taken
      *
      * @param vehicleId id of vehicle to udpate
-     * @param isTaken boolean indicating what to set the vehicle taken status as
+     * @param takenStatus boolean indicating what to set the vehicle taken status as
      * @param userId the id of the user that rented it (-1 if returning the vehicle)
      * @return true if update successful, else false
      */
-    public boolean setVehicleTaken(int vehicleId, boolean isTaken, int userId) {
+    public boolean setVehicleTaken(int vehicleId, boolean takenStatus, int userId) {
         System.out.println("DBUtils.setVehicleTaken -- BEGIN");
-        System.out.println("DBUtils.setVehicleTaken -- Updating vehicle " + vehicleId + " with taken value " + isTaken);
+        System.out.println("DBUtils.setVehicleTaken -- Updating vehicle " + vehicleId + " with taken value " + takenStatus);
 
         boolean updateSuccessful = false;
-        try {
-            // TODO: implement method
-            // UPDATE vehicle entry's "taken" column with 0 or 1 and curr_user = userid
+        String sqlStr = "UPDATE vehicles SET is_taken = ? AND curr_user_id = ? WHERE id = ?";
+        try (Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
+             PreparedStatement pstmt = conn.prepareStatement(sqlStr))
+        {
+            pstmt.setInt(1, takenStatus ? 0 : 1);
+            pstmt.setInt(2, userId);
+            pstmt.setInt(3, vehicleId);
+            pstmt.executeUpdate();
             updateSuccessful = true;
         } catch (Exception e) {
             System.out.println("DBUtils.setVehicleTaken -- Exception updating vehicle entry");
@@ -141,15 +144,22 @@ public class DatabaseManager {
      * @param amount amount associated with the transaction
      * @return true if entry successfully adeded, else false
      */
-    public boolean addTransactionEntry(int userId, int vehicleId, double amount) {
+    public boolean addTransactionEntry(int userId, int vehicleId, double amount, int transactionType) {
         System.out.println("DBUtils.addTransactionEntry -- BEGIN");
         System.out.println("DBUtils.addTransactionEntry -- Add transaction entry [userId=" + userId + ", vehicleId=" + vehicleId + ", amount=" + amount + "]");
 
         boolean addSuccessful = false;
-        try {
-            // TODO: implement method
-            // add new entry to transaction_history table
-            addSuccessful = true;
+
+        String sqlStr = "INSERT INTO transaction_history (timestamp, user_id, vehicle_id, total_amount, transaction_type) "
+                + " VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
+            PreparedStatement pstmt = conn.prepareStatement(sqlStr)) {
+            pstmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+            pstmt.setInt(2, userId);
+            pstmt.setInt(3, vehicleId);
+            pstmt.setDouble(4, amount);
+            pstmt.setInt(5, transactionType);
+            addSuccessful = pstmt.execute();
         } catch (Exception e) {
             System.out.println("DBUtils.addTransactionEntry -- Exception adding transaction entry");
             System.out.println(e);
@@ -169,8 +179,12 @@ public class DatabaseManager {
 
         // TODO: This may be able to be condensed to just a set of user ids,
         // depending on if we need all the user info or not. TBD
+        String sqlStr = "";
         Map<Integer, User> foundUsers = new HashMap<>();
-        try {
+        try (Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sqlStr))
+        {
             // TODO: implement method
             // SELECT * from users
 
@@ -241,7 +255,7 @@ public class DatabaseManager {
      * @param userId id of user to delete
      * @return true if delete successful, else false
      */
-    public boolean deleteUser(String userId) {
+    public boolean deleteUser(int userId) {
         System.out.println("DBUtils.deleteUser -- BEGIN");
         System.out.println("DBUtils.deleteUser -- Deleting user with id=" + userId);
 
