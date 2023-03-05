@@ -1,7 +1,11 @@
+/////////////////////////////////////////////////////////
+//
+//  DatabaseManager.java
+//
+/////////////////////////////////////////////////////////
 package com.carrental.springbootapp;
 
 import java.sql.*;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -48,13 +52,6 @@ public class DatabaseManager {
             INSTANCE = new DatabaseManager();
         }
         return INSTANCE;
-    }
-
-    /**
-     * TODO: Make connection to db to use for all methods in this DBUtils class
-     */
-    public static void makeConnection() {
-        // make db connection
     }
 
     /**
@@ -177,25 +174,20 @@ public class DatabaseManager {
     public Map<Integer, User> getAllUsers() {
         System.out.println("DBUtils.getAllUsers -- BEGIN");
 
-        // TODO: This may be able to be condensed to just a set of user ids,
-        // depending on if we need all the user info or not. TBD
-        String sqlStr = "";
+        // NOTE: This may be able to be condensed to just a set of user ids, depending on if we need all the user info or not
+        String sqlStr = "SELECT * FROM users";
         Map<Integer, User> foundUsers = new HashMap<>();
         try (Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sqlStr))
-        {
-            // TODO: implement method
-            // SELECT * from users
+             ResultSet rs = stmt.executeQuery(sqlStr)) {
 
-            // loop through results and create user objects from retrieved data
             User user = new User();
-            int userId = -1; //TODO: get this value from the sql result
+            int userId = rs.getInt("id");
             user.setId(userId);
-            user.setFirstName("test");
-            user.setLastName("test");
-            user.setEmail("test@test.com");
-            user.setPhoneNum("123-456-7890");
+            user.setFirstName(rs.getString("first_name"));
+            user.setLastName(rs.getString("last_name"));
+            user.setEmail(rs.getString("email"));
+            user.setPhoneNum(rs.getString("phoneNum"));
 
             foundUsers.put(userId, user);
 
@@ -234,7 +226,7 @@ public class DatabaseManager {
 
         int addedUserId = -1;
         try {
-            // TODO: implement method
+            // TODO: implement method. See addTransactionEntry(...) for example INSERT usage
             // INSERT INTO users (id, first_name, last_name, email, phoneNum) VALUES (NULL, ?, ?, ?, ?)
             addedUserId = 0; // TODO: replace 0 with newly inserted user entry id
 
@@ -265,6 +257,7 @@ public class DatabaseManager {
             // Note - we can call this method when a user is done renting/has returned the vehicle
             // In a more complex system with user management, a user can have the option to delete their account
             // DELETE FROM users WHERE id = ?
+            // Similar to the addTransactionEntry INSERT logic
             deleteSuccessful = true;
         } catch (Exception e) {
             System.out.println("DBUtils.deleteUser -- Exception deleting user " + userId);

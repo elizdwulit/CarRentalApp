@@ -1,3 +1,8 @@
+/////////////////////////////////////////////////////////
+//
+//  RentalService.java
+//
+/////////////////////////////////////////////////////////
 package com.carrental.springbootapp;
 
 import java.util.HashMap;
@@ -7,12 +12,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Functions to be called from front end
+ * Functions to be called from front end. Used to indirectly communicate with db.
  */
 public class RentalService {
 
     /** Manager used to handle all database interactions */
     private DatabaseManager dbManager;
+
+    /** Manager used for all transaction-related operations */
+    private TransactionManager transactionManager;
 
     /** Map used to store all vehicle information */
     private Map<Integer, Vehicle> vehicleMap = new HashMap<>();
@@ -57,15 +65,30 @@ public class RentalService {
      * @param color
      * @param maxCapacity
      * @param maxPrice
-     * @param vtype
-     * @return
+     * @param vehicleType
+     * @return list of vehicles that match search traits
      */
-    public List<Vehicle> getFilteredVehicles(String color, int maxCapacity, String maxPrice, int vtype) {
+    public List<Vehicle> getFilteredVehicles(Optional<String> color, Optional<Integer> maxCapacity, Optional<String> maxPrice, Optional<Integer> vehicleType) {
         return vehicleMap.values().stream()
-                .filter(v -> !v.isTaken() && v.getColor().equalsIgnoreCase(color) && v.getMaxCapacity() >= maxCapacity
-                        && v.getPricePerDay() <= Integer.parseInt(maxPrice) && v.getType() == vtype)
+                .filter(v -> !v.isTaken() && (!color.isPresent() || v.getColor().equalsIgnoreCase(color.get())) // check if color was provided then use it for filter
+                        && (!maxCapacity.isPresent() || v.getMaxCapacity() >= maxCapacity.get()) // check for maxCapacity presence and add to filter
+                        && (!maxPrice.isPresent() || v.getPricePerDay() <= Integer.parseInt(maxPrice.get())) // check for maxPrice and add to filter
+                        && (!vehicleType.isPresent() || (vehicleType.get() == -1 || v.getType() == vehicleType.get()))) // -1 vehicleType param means any vehicle type is ok
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Get a Vehicle object that has the specified vehicle id
+     * @param vehicleId
+     * @return numerical ID of vehicle
+     */
+    public Vehicle getVehicleFromId(int vehicleId) {
+        // TODO: Get vehicle object from map (class variable "vehicleMap") and return it
+
+        return new Vehicle();
+    }
+
+
     /**
      * Handles renting a vehicle
      *
@@ -75,60 +98,18 @@ public class RentalService {
      * @return true if successfully rented vehicle, else false
      */
     public boolean rentVehicle(User user, int vehicleId, double totalCost) {
-        return rentVehicle(user.getFirstName(), user.getLastName(), user.getEmail(), user.getPhoneNum(), vehicleId, totalCost);
-    }
-
-    /**
-     * Handles renting a vehicle
-     *
-     * @param firstName first name provided by user
-     * @param lastName last name provided by user
-     * @param email email provided by user
-     * @param phoneNum phone number provided by user
-     * @param vehicleId id of the vehicle to rent
-     * @param totalCost the total cost of the rental
-     * @return true if successfully rented vehicle, else false
-     */
-    public boolean rentVehicle(String firstName, String lastName, String email, String phoneNum, int vehicleId, double totalCost) {
         System.out.println("RentalFunctions.rentVehicle -- BEGIN");
 
-        // Get the vehicle corresponding to the requested vehicle id and check if it is available to rent
-        // This is a sanity check. If it is in the list then it should be available.
-        Vehicle foundVehicle = vehicleMap.get(vehicleId);
-        boolean isVehicleAvailable = foundVehicle != null ? !foundVehicle.isTaken() : false;
-        if (!isVehicleAvailable) {
-            System.out.println("RentalFunctions.rentVehicle -- Vehicle " + vehicleId + " is not available");
-            System.out.println("RentalFunctions.rentVehicle -- END1");
-            return false;
-        }
+        //TODO: call methods needed to make a rental, then return true if rental process succeeded
+        // NOTE: We already have dbManager.addTransactionEntry(...) to add to the transaction db table
+        // Workflow should be similar to
+        // 1. add user to users table in db
+        // 2. get vehicle object from vehicleId
+        // 3. make transaction with dbManager addTransactionEntry(...) with transactionType=TransactionMAnager.TRANSACTION_TYPE_BUY
+        // 4. Set the vehicle as taken after transaction is found to be successful, dbManager.setVehicleTaken(...)
 
-        // get existing user id, or add new user and get their assigned id
-        int userId = getUserId(firstName, lastName, email, phoneNum);
-
-        int transactionBuyType = 1;
-        // after user is found or added, do the transaction
-        boolean transactionSuccess = dbManager.addTransactionEntry(userId, vehicleId, totalCost, transactionBuyType);
-        if (!transactionSuccess) {
-            System.out.println("RentalFunctions.rentVehicle -- Failed to make transaction");
-            System.out.println("RentalFunctions.rentVehicle -- END2");
-            return false;
-        }
-
-        // if transaction was successful, mark the vehicle as taken
-        boolean vehicleUpdated = dbManager.setVehicleTaken(vehicleId, true, userId);
-        if (!vehicleUpdated) {
-            System.out.println("RentalFunctions.rentVehicle -- Failed to make transaction");
-            System.out.println("RentalFunctions.rentVehicle -- END3");
-            return false;
-        }
-
-        // also update the vehicle map's vehicle object
-        foundVehicle.setAvailable(false);
-        vehicleMap.put(vehicleId, foundVehicle);
-
-        System.out.println("RentalFunctions.rentVehicle -- User " + userId + " successfully rented vehicle " + vehicleId + " for $" + totalCost);
         System.out.println("RentalFunctions.rentVehicle -- END");
-        return true;
+        return false;
     }
 
     /**
@@ -141,31 +122,13 @@ public class RentalService {
         System.out.println("RentalFunctions.returnVehicle -- BEGIN");
         System.out.println("RentalFunctions.returnVehicle -- Mark vehicle " + vehicleId + " as available");
 
-        boolean returnSuccessful = dbManager.setVehicleTaken(vehicleId, false, -1);
+        //TODO: set vehicle db entry is_taken=0 and curr_user_id=-1
+        // add transaction entry with dbManager addTransactionEntry
+        // (for input params, utilize amount=0 and transactionType=TransactionManager.TRANSACTION_TYPE_RETURN)
+        // Note: in the future we may want to also delete the user, but don't have to worry about this for now
 
         System.out.println("RentalFunctions.returnVehicle -- END");
-        return returnSuccessful;
-    }
-
-    /**
-     * Get the total amount in USD that a specified vehicle will cost for a specified amount of days
-     *
-     * @param numDays number of days the vehicle will be rented out
-     * @param vehicleId the id of the vehicle being rented
-     * @return total rental cost in USD rounded up to 2 decimal places.
-     *          If vehicle was not found, returns -1
-     */
-    public double getTotalCost(int numDays, int vehicleId) {
-        // look up the vehicle in the map
-        Vehicle foundVehicle = vehicleMap.get(vehicleId);
-        if (foundVehicle == null) { // should not happen, but check is here just in case vehicle not found
-            return -1;
-        } else {
-            double vehicleDailyRate = foundVehicle.getPricePerDay();
-            double totalCost = numDays * vehicleDailyRate;
-            // return the total cost rounded up to 2 decimal places
-            return (double) Math.round(totalCost * 100) / 100;
-        }
+        return false;
     }
 
     /**

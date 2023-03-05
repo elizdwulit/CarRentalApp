@@ -1,3 +1,8 @@
+/////////////////////////////////////////////////////////
+//
+//  Vehicle.java
+//
+/////////////////////////////////////////////////////////
 package com.carrental.springbootapp;
 
 /**
@@ -21,7 +26,7 @@ public class Vehicle {
     private double pricePerDay;
 
     /** Type of vehicle (ex: car, truck, suv. etc) */
-    private int type;
+    private int type = -1;
 
     /** Flag to indicate if the vehicle is already being rented out */
     private boolean taken = false;
