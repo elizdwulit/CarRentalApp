@@ -13,18 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Optional;
 
-
 @RestController
 public class RentalController {
 
-    /**
-     * RentalService object used to interact with rentals
-     */
+    /** RentalService object used to interact with rentals */
     private RentalService rentalService;
 
-    /**
-     * Transaction Manager used to handle transaction-related operations
-     */
+    /** TransactionManager object used for transaction logic */
     private TransactionManager transactionManager;
 
     /**
@@ -32,14 +27,14 @@ public class RentalController {
      *
      * Loads all users and vehicles from the db
      */
-    RentalController() {
+    public RentalController() {
         rentalService = new RentalService();
-        rentalService.loadUsers();
-        rentalService.loadVehicles();
+        rentalService.loadUsers(); // load all users
+        rentalService.loadVehicles(); // load all vehicles
     }
 
     /**
-     * Get all vehicles in the rental system
+     * Endpoint to get all vehicles in the rental system
      * @return list of Vehicle objects
      */
     @GetMapping("/getAllVehicles")
@@ -49,29 +44,29 @@ public class RentalController {
     }
 
     /**
-     *
-     * @param color
-     * @param maxCapacity
-     * @param maxPrice
-     * @param vehicleType
-     * @return
+     * Endpoint to get a list of vehicles, filtered by optional input parameters
+     * @param color Vehicle color
+     * @param minCapacity Number of seats needed in vehicle
+     * @param maxPrice The max amount the user wants to spend
+     * @param vehicleType The type of vehicle
+     * @return List of Vehicles that meet specifications
      */
     @GetMapping("/getFilteredVehicles")
     public List<Vehicle> getFilteredVehicles(
             @RequestParam("color") Optional<String> color,
-            @RequestParam("maxCapacity") Optional<Integer> maxCapacity,
+            @RequestParam("minCapacity") Optional<Integer> minCapacity,
             @RequestParam("maxPrice") Optional<String> maxPrice,
-            @RequestParam("vtype") Optional<Integer> vehicleType) {
-        List<Vehicle> filteredVehicles = rentalService.getFilteredVehicles(color, maxCapacity, maxPrice, vehicleType);
+            @RequestParam("type") Optional<Integer> vehicleType) {
+        List<Vehicle> filteredVehicles = rentalService.getFilteredVehicles(color, minCapacity, maxPrice, vehicleType);
         return filteredVehicles;
     }
 
     /**
-     *
-     * @param vid
-     * @param startDate
-     * @param endDate
-     * @return
+     * Endpoint used to get the total amount needed to rent a vehicle between a start and end date
+     * @param vid ID of vehicle to rent
+     * @param startDate Rental start date
+     * @param endDate Rental end date
+     * @return total cost of vehicle, rounded to 2 decimal places
      */
     @GetMapping("/getTotalCost")
     public double getTotalCost(
@@ -84,34 +79,38 @@ public class RentalController {
     }
 
     /**
-     *
-     * @param vid
-     * @param fname
-     * @param lname
-     * @param email
-     * @param phoneNum
+     * Endpoint used to rent a vehicle
+     * @param vehicleId ID of vehicle
+     * @param firstName User first name
+     * @param lastName User last name
+     * @param email User email
+     * @param phoneNum User phone number
+     * @param totalCost Total transaction cost amount
+     * @return int representing results of rent action
      */
     @PostMapping(path = "/rent", produces = {"text/plain", "application/*"})
-    public void rentVehicle(
-            @RequestParam("vehicleId") int vid,
-            @RequestParam("userFname") String fname,
-            @RequestParam("userLname") String lname,
+    public int rentVehicle(
+            @RequestParam("vid") int vehicleId,
+            @RequestParam("fname") String firstName,
+            @RequestParam("lname") String lastName,
             @RequestParam("email") String email,
-            @RequestParam("phoneNum") String phoneNum
+            @RequestParam("phoneNum") String phoneNum,
+            @RequestParam("totalCost") double totalCost
     ) {
-        // TODO: Create a User object with the RequestParam info and set all the user variables
-        // use rentalService.rentVehicle(...)
+        User user = new User(firstName, lastName, email, phoneNum);
+        int rentResult = rentalService.rentVehicle(user, vehicleId, totalCost);
+        return rentResult;
     }
 
     /**
      * Endpoint used to handle the return of a vehicle previously rented out
-     * @param vid id of vehicle to rent
+     * @param vehicleId id of vehicle to rent
      * @param userId id of user making the return
      */
     @PostMapping(path = "/returnVehicle", produces = {"text/plain", "application/*"})
-    public void returnVehicle(
-            @RequestParam("vehicleId") int vid,
+    public boolean returnVehicle(
+            @RequestParam("vehicleId") int vehicleId,
             @RequestParam("userId") int userId) {
-        // TODO: set the Vehicle db row entry's is_taken col = 0 and curr_user_id = -1 (do this using the DatabaseManager methods)
+        return rentalService.returnVehicle(userId, vehicleId);
     }
 }

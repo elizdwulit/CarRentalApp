@@ -19,8 +19,8 @@ public class Vehicle {
     /** Color of vehicle */
     private String color;
 
-    /** The max number of people the vehicle can accomodate */
-    private int maxCapacity;
+    /** The minimum number of people the vehicle can accommodate */
+    private int minCapacity;
 
     /** Price the vehicle costs to rent (per day) */
     private double pricePerDay;
@@ -47,14 +47,14 @@ public class Vehicle {
      *
      * @param modelName
      * @param color
-     * @param maxCapacity
+     * @param minCapacity
      * @param pricePerDay
      * @param type
      */
-    public Vehicle(String modelName, String color, int maxCapacity, double pricePerDay, int type) {
+    public Vehicle(String modelName, String color, int minCapacity, double pricePerDay, int type) {
         this.modelName = modelName;
         this.color = color;
-        this.maxCapacity = maxCapacity;
+        this.minCapacity = minCapacity;
         this.pricePerDay = pricePerDay;
         this.type = type;
     }
@@ -84,12 +84,12 @@ public class Vehicle {
         this.color = color;
     }
 
-    public int getMaxCapacity() {
-        return maxCapacity;
+    public int getMinCapacity() {
+        return minCapacity;
     }
 
-    public void setMaxCapacity(int maxCapacity) {
-        this.maxCapacity = maxCapacity;
+    public void setMinCapacity(int maxCapacity) {
+        this.minCapacity = minCapacity;
     }
 
     public double getPricePerDay() {
@@ -130,7 +130,7 @@ public class Vehicle {
                 "id='" + id + "\'" +
                 ", modelName='" + modelName + '\'' +
                 ", color=" + color +
-                ", maxCapacity=" + maxCapacity +
+                ", minCapacity=" + minCapacity +
                 ", pricePerDay=" + pricePerDay +
                 ", type=" + type +
                 ", taken=" + taken +

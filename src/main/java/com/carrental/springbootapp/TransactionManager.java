@@ -1,4 +1,13 @@
+/////////////////////////////////////////////////////////
+//
+//  TransactionManager.java
+//
+/////////////////////////////////////////////////////////
 package com.carrental.springbootapp;
+
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Class used for transaction-related utilities and management
@@ -18,10 +27,14 @@ public class TransactionManager {
         // empty constructor
     }
 
-    //TODO: This entire method needs to be defined and populated.
-    // Not sure how we will do this since we aren't using real transaction service yet.
+    /**
+     * Make a payment
+     * @return true if payment successful, else false
+     */
     public boolean pay() {
-        return false;
+        //TODO: This entire method needs to be defined and populated.
+        // Not sure how we will do this since we aren't using real transaction service yet.
+        return true;
     }
 
     /**
@@ -31,7 +44,7 @@ public class TransactionManager {
      */
     public double getTotalCost(Vehicle vehicle, String startDate, String endDate) {
         // get the num of days vehicle will be rented for
-        int numDays = getNumDaysBetweenDates(startDate, endDate);
+        long numDays = getNumDaysBetweenDates(startDate, endDate);
 
         // get daily rate for vehicle
         double vehicleDailyRate = vehicle.getPricePerDay();
@@ -43,12 +56,23 @@ public class TransactionManager {
 
     /**
      * Get the number of days between two dates
-     * @param startDate
-     * @param endDate
+     * @param startDateStr The start date as a String
+     * @param endDateStr The end date as a String
      * @return number of days between dates
      */
-    private int getNumDaysBetweenDates(String startDate, String endDate) {
-        // TODO: Use Java Calendar methods to calculate num days and return
-        return 0;
+    private long getNumDaysBetweenDates(String startDateStr, String endDateStr) {
+        // parse the start date
+        Date startDate = new Date(startDateStr);
+        Calendar startDateCal = Calendar.getInstance();
+        startDateCal.setTime(startDate);
+
+        // parse the end date
+        Date endDate = new Date(endDateStr);
+        Calendar endDateCal = Calendar.getInstance();
+        endDateCal.setTime(endDate);
+
+        long numDays = ChronoUnit.DAYS.between(startDateCal.toInstant(), endDateCal.toInstant());
+
+        return numDays;
     }
 }

@@ -62,16 +62,16 @@ public class RentalService {
 
     /**
      * Get list of vehicles that meet requested trait requirements
-     * @param color
-     * @param maxCapacity
-     * @param maxPrice
-     * @param vehicleType
-     * @return list of vehicles that match search traits
+     * @param color Specified color
+     * @param minCapacity The minimum number of seats needed in a vehicle
+     * @param maxPrice Max price of vehicle
+     * @param vehicleType The type of vehicle
+     * @return list of vehicles that match search criteria
      */
-    public List<Vehicle> getFilteredVehicles(Optional<String> color, Optional<Integer> maxCapacity, Optional<String> maxPrice, Optional<Integer> vehicleType) {
+    public List<Vehicle> getFilteredVehicles(Optional<String> color, Optional<Integer> minCapacity, Optional<String> maxPrice, Optional<Integer> vehicleType) {
         return vehicleMap.values().stream()
                 .filter(v -> !v.isTaken() && (!color.isPresent() || v.getColor().equalsIgnoreCase(color.get())) // check if color was provided then use it for filter
-                        && (!maxCapacity.isPresent() || v.getMaxCapacity() >= maxCapacity.get()) // check for maxCapacity presence and add to filter
+                        && (!minCapacity.isPresent() || v.getMinCapacity() <= minCapacity.get()) // check for minCapacity presence and add to filter
                         && (!maxPrice.isPresent() || v.getPricePerDay() <= Integer.parseInt(maxPrice.get())) // check for maxPrice and add to filter
                         && (!vehicleType.isPresent() || (vehicleType.get() == -1 || v.getType() == vehicleType.get()))) // -1 vehicleType param means any vehicle type is ok
                 .collect(Collectors.toList());
@@ -79,15 +79,16 @@ public class RentalService {
 
     /**
      * Get a Vehicle object that has the specified vehicle id
-     * @param vehicleId
-     * @return numerical ID of vehicle
+     * @param vehicleId id of vehicle
+     * @return Vehicle object if found in the system, else returns null
      */
     public Vehicle getVehicleFromId(int vehicleId) {
-        // TODO: Get vehicle object from map (class variable "vehicleMap") and return it
-
-        return new Vehicle();
+        Vehicle foundVehicle = vehicleMap.get(vehicleId);
+        if (foundVehicle == null) {
+            System.out.println("RentalService.getVehicleFromId -- No vehicle found for vid: " + vehicleId);
+        }
+        return foundVehicle;
     }
-
 
     /**
      * Handles renting a vehicle
@@ -95,21 +96,49 @@ public class RentalService {
      * @param user User doing the rental
      * @param vehicleId id of the vehicle to rent
      * @param totalCost the total cost of the rental
-     * @return true if successfully rented vehicle, else false
+     * @return integer indicating if rent was successful
+     *      0 = success
+     *      1 = add user failed
+     *      2 = vehicle not found in system, or vehicle is already taken
+     *      3 = failed to update vehicle entry in db
+     *      4 = transaction failed
      */
-    public boolean rentVehicle(User user, int vehicleId, double totalCost) {
+    public int rentVehicle(User user, int vehicleId, double totalCost) {
         System.out.println("RentalFunctions.rentVehicle -- BEGIN");
 
-        //TODO: call methods needed to make a rental, then return true if rental process succeeded
-        // NOTE: We already have dbManager.addTransactionEntry(...) to add to the transaction db table
-        // Workflow should be similar to
-        // 1. add user to users table in db
-        // 2. get vehicle object from vehicleId
-        // 3. make transaction with dbManager addTransactionEntry(...) with transactionType=TransactionMAnager.TRANSACTION_TYPE_BUY
-        // 4. Set the vehicle as taken after transaction is found to be successful, dbManager.setVehicleTaken(...)
+        // First, add the new user to the database
+        // (Note 3/7/22 there are no user accounts feature currently implemented)
+        int addedUserId = dbManager.addUser(user);
+        if (addedUserId == -1) {
+            System.out.println("RentalService.rentVehicle -- Failed to add user entry.");
+            return 1;
+        }
 
-        System.out.println("RentalFunctions.rentVehicle -- END");
-        return false;
+        // Check if vehicle is still in system and available to be rented
+        Vehicle foundVehicle = getVehicleFromId(vehicleId);
+        if (foundVehicle == null || foundVehicle.isTaken()) {
+            System.out.println("RentalService.rentVehicle -- Available vehicle not found in system for vid " + vehicleId);
+            return 2;
+        }
+
+        // Assign the vehicle in the db to the user
+        boolean updateVehicleSuccessful = dbManager.setVehicleTaken(foundVehicle.getId(), true, addedUserId);
+        if (!updateVehicleSuccessful) {
+            System.out.println("RentalService.rentVehicle -- Failed to update vehicle entry for vid " + vehicleId);
+            return 3;
+        }
+
+        // TODO: Add actual payment handling. Currently not in scope of prototype (3/7/22)
+        //transactionManager.pay();
+        boolean transactionSuccess = dbManager.addTransactionEntry(addedUserId, vehicleId, totalCost, TransactionManager.TRANSACTION_TYPE_BUY);
+        if (!transactionSuccess) {
+            System.out.println("RentalService.rentVehicle -- Failed to make transaction.");
+            return 4;
+        }
+
+        System.out.println("RentalService.rentVehicle -- Successfully rented vehicle " + vehicleId + " to user " + addedUserId);
+        System.out.println("RentalService.rentVehicle -- END");
+        return 0;
     }
 
     /**
@@ -118,17 +147,33 @@ public class RentalService {
      * @param vehicleId the id of the vehicle to mark available
      * @return true if update successful, else false
      */
-    public boolean returnVehicle(int vehicleId) {
-        System.out.println("RentalFunctions.returnVehicle -- BEGIN");
-        System.out.println("RentalFunctions.returnVehicle -- Mark vehicle " + vehicleId + " as available");
+    public boolean returnVehicle(int userId, int vehicleId) {
+        System.out.println("RentalService.returnVehicle -- BEGIN");
+        System.out.println("RentalService.returnVehicle -- Mark vehicle " + vehicleId + " as available");
 
-        //TODO: set vehicle db entry is_taken=0 and curr_user_id=-1
-        // add transaction entry with dbManager addTransactionEntry
-        // (for input params, utilize amount=0 and transactionType=TransactionManager.TRANSACTION_TYPE_RETURN)
-        // Note: in the future we may want to also delete the user, but don't have to worry about this for now
+        // Check if vehicle is still in system (Should not happen)
+        Vehicle foundVehicle = getVehicleFromId(vehicleId);
+        if (foundVehicle == null || foundVehicle.isTaken()) {
+            System.out.println("RentalService.returnVehicle -- Available vehicle not found in system for vid " + vehicleId);
+            return false;
+        }
 
-        System.out.println("RentalFunctions.returnVehicle -- END");
-        return false;
+        // Reset the vehicle entry to be not taken and not have a corresponding user
+        boolean updateVehicleSuccessful = dbManager.setVehicleTaken(foundVehicle.getId(), false, -1);
+        if (!updateVehicleSuccessful) {
+            System.out.println("RentalService.returnVehicle -- Failed to update vehicle entry for vid " + vehicleId);
+            return false;
+        }
+
+        // Add transaction entry for history saving purposes (TODO: Separate into different table)
+        boolean transactionSuccess = dbManager.addTransactionEntry(userId, vehicleId, 0.0, TransactionManager.TRANSACTION_TYPE_RETURN);
+        if (!transactionSuccess) {
+            System.out.println("RentalService.returnVehicle -- Failed to make transaction.");
+            return false;
+        }
+
+        System.out.println("RentalService.returnVehicle -- END");
+        return true;
     }
 
     /**

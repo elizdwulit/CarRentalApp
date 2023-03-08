@@ -15,7 +15,7 @@ import java.util.Properties;
  * Implemented as Singleton so only one DatabaseManager exists at a time.
  *
  * The database has the following tables:
- * users [id, first_name, last_name, email, phone_num]
+ * users [id, timestamp, first_name, last_name, email, phone_num]
  * vehicles [id, model_name, color, max_capacity, daily_price, v_type, is_taken, curr_user_id]
  * vehicle_types [id, name]
  * transaction_history [id, timestamp, user_id, vehicle_id, total_amount, transaction_type]
@@ -71,7 +71,7 @@ public class DatabaseManager {
                 int id = rs.getInt("id");
                 String name = rs.getString("model_name");
                 String color = rs.getString("color");
-                int maxCapacity = rs.getInt("max_capacity");
+                int minCapacity = rs.getInt("min_capacity");
                 double dailyPrice = rs.getDouble("daily_price");
                 int type = rs.getInt("v_type");
                 int isTaken = rs.getInt("is_taken");
@@ -82,7 +82,7 @@ public class DatabaseManager {
                 v.setId(id);
                 v.setModelName(name);
                 v.setColor(color);
-                v.setMaxCapacity(maxCapacity);
+                v.setMinCapacity(minCapacity);
                 v.setPricePerDay(dailyPrice);
                 v.setType(type);
                 v.setAvailable(isTaken == 0);
@@ -124,6 +124,7 @@ public class DatabaseManager {
             pstmt.setInt(3, vehicleId);
             pstmt.executeUpdate();
             updateSuccessful = true;
+            System.out.println("DBUtils.setVehicleTaken -- Successfully updated vehicle entry for vid: " + vehicleId);
         } catch (Exception e) {
             System.out.println("DBUtils.setVehicleTaken -- Exception updating vehicle entry");
             System.out.println(e);
@@ -180,17 +181,17 @@ public class DatabaseManager {
         try (Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sqlStr)) {
+            while (rs.next()) {
+                User user = new User();
+                int userId = rs.getInt("id");
+                user.setId(userId);
+                user.setFirstName(rs.getString("first_name"));
+                user.setLastName(rs.getString("last_name"));
+                user.setEmail(rs.getString("email"));
+                user.setPhoneNum(rs.getString("phoneNum"));
 
-            User user = new User();
-            int userId = rs.getInt("id");
-            user.setId(userId);
-            user.setFirstName(rs.getString("first_name"));
-            user.setLastName(rs.getString("last_name"));
-            user.setEmail(rs.getString("email"));
-            user.setPhoneNum(rs.getString("phoneNum"));
-
-            foundUsers.put(userId, user);
-
+                foundUsers.put(userId, user);
+            }
         } catch (Exception e) {
             System.out.println("DBUtils.getAllUsers -- Exception getting all users");
             System.out.println(e);
@@ -224,19 +225,29 @@ public class DatabaseManager {
         System.out.println("DBUtils.addUser -- BEGIN");
         System.out.println("DBUtils.addUser -- Adding new user [first_name=" + firstName + ", last_name=" + lastName + ", email=" + email + ", phoneNum=" + phoneNum + "]");
 
+        // Set user id to -1. Should be reassigned after INSERT completes
         int addedUserId = -1;
+
+        String sqlStr = "INSERT INTO users (first_name, last_name, email, phone_num) "
+                    + " VALUES (?, ?, ?, ?,) RETURNING id";
         try {
-            // TODO: implement method. See addTransactionEntry(...) for example INSERT usage
-            // INSERT INTO users (id, first_name, last_name, email, phoneNum) VALUES (NULL, ?, ?, ?, ?)
-            addedUserId = 0; // TODO: replace 0 with newly inserted user entry id
-
-            System.out.println("DBUtils.addUser -- Added new user. Generated user id= " + addedUserId);
-
+            Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
+            // Create statement to insert the user into the db
+            PreparedStatement pstmt = conn.prepareStatement(sqlStr);
+            pstmt.setString(1, firstName);
+            pstmt.setString(2, lastName);
+            pstmt.setString(3, email);
+            pstmt.setString(4, phoneNum);
+            ResultSet rs = pstmt.executeQuery();
+            while(rs.next()) { // get the resulting ID of the inserted row
+                addedUserId = rs.getInt("id");
+            }
         } catch (Exception e) {
             System.out.println("DBUtils.addUser -- Exception adding user");
             System.out.println(e);
         }
 
+        System.out.println("DBUtils.addUser -- Added new user. Generated user id= " + addedUserId);
         System.out.println("DBUtils.addUser -- END");
         return addedUserId; // return -1 by default
     }
@@ -252,13 +263,12 @@ public class DatabaseManager {
         System.out.println("DBUtils.deleteUser -- Deleting user with id=" + userId);
 
         boolean deleteSuccessful = false;
-        try {
-            // TODO: implement method
-            // Note - we can call this method when a user is done renting/has returned the vehicle
-            // In a more complex system with user management, a user can have the option to delete their account
-            // DELETE FROM users WHERE id = ?
-            // Similar to the addTransactionEntry INSERT logic
+        String sqlStr = "DELETE FROM users WHERE id = " + userId;
+        try(Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
+            PreparedStatement st = conn.prepareStatement(sqlStr)) {
+            st.executeUpdate();
             deleteSuccessful = true;
+            System.out.println("DBUtils.deleteUser -- Successfully deleted user: " + userId);
         } catch (Exception e) {
             System.out.println("DBUtils.deleteUser -- Exception deleting user " + userId);
             System.out.println(e);
