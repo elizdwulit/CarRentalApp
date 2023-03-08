@@ -104,7 +104,7 @@ public class RentalService {
      *      4 = transaction failed
      */
     public int rentVehicle(User user, int vehicleId, double totalCost) {
-        System.out.println("RentalFunctions.rentVehicle -- BEGIN");
+        System.out.println("RentalService.rentVehicle -- BEGIN");
 
         // First, add the new user to the database
         // (Note 3/7/22 there are no user accounts feature currently implemented)
@@ -187,7 +187,7 @@ public class RentalService {
      * @return id of user
      */
     private int getUserId(String firstName, String lastName, String email, String phoneNum) {
-        System.out.println("RentalFunctions.getUserId -- BEGIN");
+        System.out.println("RentalService.getUserId -- BEGIN");
         int userId = -1;
         // look through the map
         Optional<Map.Entry<Integer, User>> matchingUser = usersMap.entrySet().stream()
@@ -207,7 +207,7 @@ public class RentalService {
                 usersMap.put(userId, user);
             }
         }
-        System.out.println("RentalFunctions.getUserId -- END");
+        System.out.println("RentalService.getUserId -- END");
         return userId;
     }
 }

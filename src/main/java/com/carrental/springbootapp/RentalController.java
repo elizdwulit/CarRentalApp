@@ -31,6 +31,7 @@ public class RentalController {
         rentalService = new RentalService();
         rentalService.loadUsers(); // load all users
         rentalService.loadVehicles(); // load all vehicles
+        transactionManager = new TransactionManager();
     }
 
     /**

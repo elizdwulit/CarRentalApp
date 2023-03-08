@@ -16,7 +16,7 @@ import java.util.Properties;
  *
  * The database has the following tables:
  * users [id, timestamp, first_name, last_name, email, phone_num]
- * vehicles [id, model_name, color, max_capacity, daily_price, v_type, is_taken, curr_user_id]
+ * vehicles [id, model_name, color, min_capacity, daily_price, v_type, is_taken, curr_user_id]
  * vehicle_types [id, name]
  * transaction_history [id, timestamp, user_id, vehicle_id, total_amount, transaction_type]
  */
@@ -59,7 +59,7 @@ public class DatabaseManager {
      * @return Map containing vehicles that are available to rent, indexed by vehicle id
      */
     public Map<Integer, Vehicle> getAllVehicles() {
-        System.out.println("DBUtils.getAllVehicles -- BEGIN");
+        System.out.println("DatabaseManager.getAllVehicles -- BEGIN");
 
         String sqlStr = "SELECT * FROM vehicles";
         Map<Integer, Vehicle> allVehicles = new HashMap<>();
@@ -92,11 +92,11 @@ public class DatabaseManager {
                 allVehicles.put(id, v);
             }
         } catch (Exception e) {
-            System.out.println("DBUtils.getAllVehicles -- Exception getting all vehicles");
+            System.out.println("DatabaseManager.getAllVehicles -- Exception getting all vehicles");
             System.out.println(e);
         }
 
-        System.out.println("DBUtils.getAllVehicles -- END");
+        System.out.println("DatabaseManager.getAllVehicles -- END");
 
         // return the final set
         return allVehicles;
@@ -111,8 +111,8 @@ public class DatabaseManager {
      * @return true if update successful, else false
      */
     public boolean setVehicleTaken(int vehicleId, boolean takenStatus, int userId) {
-        System.out.println("DBUtils.setVehicleTaken -- BEGIN");
-        System.out.println("DBUtils.setVehicleTaken -- Updating vehicle " + vehicleId + " with taken value " + takenStatus);
+        System.out.println("DatabaseManager.setVehicleTaken -- BEGIN");
+        System.out.println("DatabaseManager.setVehicleTaken -- Updating vehicle " + vehicleId + " with taken value " + takenStatus);
 
         boolean updateSuccessful = false;
         String sqlStr = "UPDATE vehicles SET is_taken = ? AND curr_user_id = ? WHERE id = ?";
@@ -124,13 +124,13 @@ public class DatabaseManager {
             pstmt.setInt(3, vehicleId);
             pstmt.executeUpdate();
             updateSuccessful = true;
-            System.out.println("DBUtils.setVehicleTaken -- Successfully updated vehicle entry for vid: " + vehicleId);
+            System.out.println("DatabaseManager.setVehicleTaken -- Successfully updated vehicle entry for vid: " + vehicleId);
         } catch (Exception e) {
-            System.out.println("DBUtils.setVehicleTaken -- Exception updating vehicle entry");
+            System.out.println("DatabaseManager.setVehicleTaken -- Exception updating vehicle entry");
             System.out.println(e);
         }
 
-        System.out.println("DBUtils.setVehicleTaken -- END");
+        System.out.println("DatabaseManager.setVehicleTaken -- END");
         return updateSuccessful;
     }
 
@@ -143,8 +143,8 @@ public class DatabaseManager {
      * @return true if entry successfully adeded, else false
      */
     public boolean addTransactionEntry(int userId, int vehicleId, double amount, int transactionType) {
-        System.out.println("DBUtils.addTransactionEntry -- BEGIN");
-        System.out.println("DBUtils.addTransactionEntry -- Add transaction entry [userId=" + userId + ", vehicleId=" + vehicleId + ", amount=" + amount + "]");
+        System.out.println("DatabaseManager.addTransactionEntry -- BEGIN");
+        System.out.println("DatabaseManager.addTransactionEntry -- Add transaction entry [userId=" + userId + ", vehicleId=" + vehicleId + ", amount=" + amount + "]");
 
         boolean addSuccessful = false;
 
@@ -159,11 +159,11 @@ public class DatabaseManager {
             pstmt.setInt(5, transactionType);
             addSuccessful = pstmt.execute();
         } catch (Exception e) {
-            System.out.println("DBUtils.addTransactionEntry -- Exception adding transaction entry");
+            System.out.println("DatabaseManager.addTransactionEntry -- Exception adding transaction entry");
             System.out.println(e);
         }
 
-        System.out.println("DBUtils.addTransactionEntry -- END");
+        System.out.println("DatabaseManager.addTransactionEntry -- END");
         return addSuccessful;
     }
 
@@ -173,7 +173,7 @@ public class DatabaseManager {
      * @return Map containing all users in the system
      */
     public Map<Integer, User> getAllUsers() {
-        System.out.println("DBUtils.getAllUsers -- BEGIN");
+        System.out.println("DatabaseManager.getAllUsers -- BEGIN");
 
         // NOTE: This may be able to be condensed to just a set of user ids, depending on if we need all the user info or not
         String sqlStr = "SELECT * FROM users";
@@ -193,11 +193,11 @@ public class DatabaseManager {
                 foundUsers.put(userId, user);
             }
         } catch (Exception e) {
-            System.out.println("DBUtils.getAllUsers -- Exception getting all users");
+            System.out.println("DatabaseManager.getAllUsers -- Exception getting all users");
             System.out.println(e);
         }
 
-        System.out.println("DBUtils.getAllUsers -- END");
+        System.out.println("DatabaseManager.getAllUsers -- END");
 
         // return the final set
         return foundUsers;
@@ -222,8 +222,8 @@ public class DatabaseManager {
      * @return the auto-assigned id of the added user
      */
     public int addUser(String firstName, String lastName, String email, String phoneNum) {
-        System.out.println("DBUtils.addUser -- BEGIN");
-        System.out.println("DBUtils.addUser -- Adding new user [first_name=" + firstName + ", last_name=" + lastName + ", email=" + email + ", phoneNum=" + phoneNum + "]");
+        System.out.println("DatabaseManager.addUser -- BEGIN");
+        System.out.println("DatabaseManager.addUser -- Adding new user [first_name=" + firstName + ", last_name=" + lastName + ", email=" + email + ", phoneNum=" + phoneNum + "]");
 
         // Set user id to -1. Should be reassigned after INSERT completes
         int addedUserId = -1;
@@ -243,12 +243,12 @@ public class DatabaseManager {
                 addedUserId = rs.getInt("id");
             }
         } catch (Exception e) {
-            System.out.println("DBUtils.addUser -- Exception adding user");
+            System.out.println("DatabaseManager.addUser -- Exception adding user");
             System.out.println(e);
         }
 
-        System.out.println("DBUtils.addUser -- Added new user. Generated user id= " + addedUserId);
-        System.out.println("DBUtils.addUser -- END");
+        System.out.println("DatabaseManager.addUser -- Added new user. Generated user id= " + addedUserId);
+        System.out.println("DatabaseManager.addUser -- END");
         return addedUserId; // return -1 by default
     }
 
@@ -259,8 +259,8 @@ public class DatabaseManager {
      * @return true if delete successful, else false
      */
     public boolean deleteUser(int userId) {
-        System.out.println("DBUtils.deleteUser -- BEGIN");
-        System.out.println("DBUtils.deleteUser -- Deleting user with id=" + userId);
+        System.out.println("DatabaseManager.deleteUser -- BEGIN");
+        System.out.println("DatabaseManager.deleteUser -- Deleting user with id=" + userId);
 
         boolean deleteSuccessful = false;
         String sqlStr = "DELETE FROM users WHERE id = " + userId;
@@ -268,13 +268,13 @@ public class DatabaseManager {
             PreparedStatement st = conn.prepareStatement(sqlStr)) {
             st.executeUpdate();
             deleteSuccessful = true;
-            System.out.println("DBUtils.deleteUser -- Successfully deleted user: " + userId);
+            System.out.println("DatabaseManager.deleteUser -- Successfully deleted user: " + userId);
         } catch (Exception e) {
-            System.out.println("DBUtils.deleteUser -- Exception deleting user " + userId);
+            System.out.println("DatabaseManager.deleteUser -- Exception deleting user " + userId);
             System.out.println(e);
         }
 
-        System.out.println("DBUtils.deleteUser -- END");
+        System.out.println("DatabaseManager.deleteUser -- END");
         return deleteSuccessful;
     }
 
@@ -285,11 +285,11 @@ public class DatabaseManager {
      * @return true if update successful, else false
      */
     public boolean modifyUser(User user) {
-        System.out.println("DBUtils.modifyUser -- BEGIN");
+        System.out.println("DatabaseManager.modifyUser -- BEGIN");
 
         // This method is not needed for this level of prototype, but it is here for future if desired
 
-        System.out.println("DBUtils.modifyUser -- END");
+        System.out.println("DatabaseManager.modifyUser -- END");
         return false;
     }
 }
