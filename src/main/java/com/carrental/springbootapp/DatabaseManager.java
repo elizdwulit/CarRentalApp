@@ -16,9 +16,9 @@ import java.util.Properties;
  *
  * The database has the following tables:
  * users [id, timestamp, first_name, last_name, email, phone_num]
- * vehicles [id, model_name, color, min_capacity, daily_price, v_type, is_taken, curr_user_id]
- * vehicle_types [id, name]
+ * vehicles [id, make, model, year, color, min_capacity, daily_price, type, is_taken, curr_user]
  * transaction_history [id, timestamp, user_id, vehicle_id, total_amount, transaction_type]
+ * transcation_types [id, name]
  */
 public class DatabaseManager {
 
@@ -68,28 +68,20 @@ public class DatabaseManager {
              ResultSet rs = stmt.executeQuery(sqlStr))
         {
             while (rs.next()) {
-                int id = rs.getInt("id");
-                String name = rs.getString("model_name");
-                String color = rs.getString("color");
-                int minCapacity = rs.getInt("min_capacity");
-                double dailyPrice = rs.getDouble("daily_price");
-                int type = rs.getInt("v_type");
-                int isTaken = rs.getInt("is_taken");
-                int currUserId = rs.getInt("curr_user_id");
-
-                // loop through results and create vehicle objects from retrieved data
                 Vehicle v = new Vehicle();
-                v.setId(id);
-                v.setModelName(name);
-                v.setColor(color);
-                v.setMinCapacity(minCapacity);
-                v.setPricePerDay(dailyPrice);
-                v.setType(type);
-                v.setAvailable(isTaken == 0);
-                v.setCurrentRenterId(currUserId);
+                v.setId(rs.getInt("id"));
+                v.setMake(rs.getString("make"));
+                v.setModel(rs.getString("model"));
+                v.setYear(rs.getInt("year"));
+                v.setColor(rs.getString("color"));
+                v.setMinCapacity(rs.getInt("min_capacity"));
+                v.setPricePerDay(rs.getDouble("daily_price"));
+                v.setType(rs.getString("type"));
+                v.setTaken(rs.getBoolean("is_taken"));
+                v.setCurrentRenterId(rs.getInt("curr_user_id"));
 
                 // add vehicle entry to map to be returned
-                allVehicles.put(id, v);
+                allVehicles.put(v.getId(), v);
             }
         } catch (Exception e) {
             System.out.println("DatabaseManager.getAllVehicles -- Exception getting all vehicles");
@@ -291,5 +283,100 @@ public class DatabaseManager {
 
         System.out.println("DatabaseManager.modifyUser -- END");
         return false;
+    }
+
+    /**
+     * Add a new vehicle to the database
+     * @param v The new vehicle
+     * @return auto-generated ID of added vehicle. -1 if failed to add
+     */
+    public int addVehicle(Vehicle v) {
+        System.out.println("DatabaseManager.addVehicle -- BEGIN");
+
+        int addedVehicleId = -1; // default -1
+        String sqlStr = "INSERT INTO vehicles (make, model, year, color, min_capacity, daily_price, v_type, is_taken, curr_user_id) "
+                + " VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try {
+            Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
+            // Create statement to insert the vehicle into the db
+            PreparedStatement pstmt = conn.prepareStatement(sqlStr);
+            int i = 0;
+            pstmt.setString(++i, v.getMake());
+            pstmt.setString(++i, v.getModel());
+            pstmt.setInt(++i, v.getYear());
+            pstmt.setString(++i, v.getColor());
+            pstmt.setInt(++i, v.getMinCapacity());
+            pstmt.setDouble(++i, v.getPricePerDay());
+            pstmt.setString(++i, v.getType());
+            pstmt.setBoolean(++i, false);
+            pstmt.setInt(++i, -1);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) { // get the resulting ID of the inserted row
+                addedVehicleId = rs.getInt("id");
+            }
+        } catch (Exception e) {
+            System.out.println("DatabaseManager.addUser -- Exception adding user");
+            System.out.println(e);
+        }
+        return addedVehicleId;
+    }
+
+    /**
+     * Delete a vehicle from the database
+     * @param vehicleId id of vehicle to delete
+     * @return true if delete successful, else false
+     */
+    public boolean deleteVehicle(int vehicleId) {
+        System.out.println("DatabaseManager.deleteVehicle -- BEGIN");
+        System.out.println("DatabaseManager.deleteVehicle -- Deleting user with id=" + vehicleId);
+
+        boolean deleteSuccessful = false;
+        String sqlStr = "DELETE FROM vehicles WHERE id = " + vehicleId;
+        try(Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
+            PreparedStatement st = conn.prepareStatement(sqlStr)) {
+            st.executeUpdate();
+            deleteSuccessful = true;
+            System.out.println("DatabaseManager.deleteVehicle -- Successfully deleted vehicle: " + vehicleId);
+        } catch (Exception e) {
+            System.out.println("DatabaseManager.deleteVehicle -- Exception deleting vehicle " + vehicleId);
+            System.out.println(e);
+        }
+
+        System.out.println("DatabaseManager.deleteVehicle -- END");
+        return deleteSuccessful;
+    }
+
+    /**
+     * Update a vehicle in the database
+     * @param vid id of vehicle to update
+     * @param v Vehicle object containing new information
+     * @return true if update successful, else false
+     */
+    public boolean updateVehicle(int vid, Vehicle v) {
+        System.out.println("DatabaseManager.updateVehicle -- BEGIN");
+        System.out.println("DatabaseManager.updateVehicle -- Modifying vehicle with vid=" + vid);
+
+        boolean updateSuccessful = false;
+        String sqlStr = "UPDATE vehicles SET"
+                + " make =" + v.getMake()
+                + ", model =" + v.getModel()
+                + ", year =" + v.getYear()
+                + ", color =" + v.getColor()
+                + ", min_capacity =" + v.getMinCapacity()
+                + ", daily_price =" + v.getPricePerDay()
+                + ", type =" + v.getType()
+                + " WHERE id = " + vid;
+        try(Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
+            PreparedStatement st = conn.prepareStatement(sqlStr)) {
+            st.executeUpdate();
+            updateSuccessful = true;
+            System.out.println("DatabaseManager.updateVehicle -- Successfully deleted vehicle: " + vid);
+        } catch (Exception e) {
+            System.out.println("DatabaseManager.updateVehicle -- Exception deleting vehicle " + vid);
+            System.out.println(e);
+        }
+
+        System.out.println("DatabaseManager.updateVehicle -- END");
+        return updateSuccessful;
     }
 }

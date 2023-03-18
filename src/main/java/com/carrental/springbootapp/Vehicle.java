@@ -13,8 +13,14 @@ public class Vehicle {
     /** id of vehicle */
     private int id;
 
-    /** Model name of vehicle */
-    private String modelName;
+    /** Make of vehicle */
+    private String make;
+
+    /** Model of vehicle */
+    private String model;
+
+    /** Year of vehicle */
+    private int year;
 
     /** Color of vehicle */
     private String color;
@@ -26,7 +32,7 @@ public class Vehicle {
     private double pricePerDay;
 
     /** Type of vehicle (ex: car, truck, suv. etc) */
-    private int type = -1;
+    private String type;
 
     /** Flag to indicate if the vehicle is already being rented out */
     private boolean taken = false;
@@ -38,28 +44,44 @@ public class Vehicle {
      * Empty constructor
      */
     public Vehicle() {
-        // empty constructor
     }
 
     /**
      * Constructor
-     * (Note: available param is purposely not included in constructor. Has default val = true)
-     *
-     * @param modelName
+     * @param make
+     * @param model
+     * @param year
      * @param color
      * @param minCapacity
      * @param pricePerDay
      * @param type
      */
-    public Vehicle(String modelName, String color, int minCapacity, double pricePerDay, int type) {
-        this.modelName = modelName;
+    public Vehicle(String make, String model, int year, String color, int minCapacity, double pricePerDay, String type) {
+        this.make = make;
+        this.model = model;
+        this.year = year;
         this.color = color;
         this.minCapacity = minCapacity;
         this.pricePerDay = pricePerDay;
         this.type = type;
     }
 
-    // Getters and Setters
+    @Override
+    public String toString() {
+        return "Vehicle{" +
+                "id=" + id +
+                ", make='" + make + '\'' +
+                ", model='" + model + '\'' +
+                ", year=" + year +
+                ", color='" + color + '\'' +
+                ", minCapacity=" + minCapacity +
+                ", pricePerDay=" + pricePerDay +
+                ", type='" + type + '\'' +
+                ", taken=" + taken +
+                ", currentRenterId=" + currentRenterId +
+                '}';
+    }
+
     public int getId() {
         return id;
     }
@@ -68,12 +90,28 @@ public class Vehicle {
         this.id = id;
     }
 
-    public String getModelName() {
-        return modelName;
+    public String getMake() {
+        return make;
     }
 
-    public void setModelName(String modelName) {
-        this.modelName = modelName;
+    public void setMake(String make) {
+        this.make = make;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public int getYear() {
+        return year;
+    }
+
+    public void setYear(int year) {
+        this.year = year;
     }
 
     public String getColor() {
@@ -88,7 +126,7 @@ public class Vehicle {
         return minCapacity;
     }
 
-    public void setMinCapacity(int maxCapacity) {
+    public void setMinCapacity(int minCapacity) {
         this.minCapacity = minCapacity;
     }
 
@@ -100,11 +138,11 @@ public class Vehicle {
         this.pricePerDay = pricePerDay;
     }
 
-    public int getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(int type) {
+    public void setType(String type) {
         this.type = type;
     }
 
@@ -112,7 +150,7 @@ public class Vehicle {
         return taken;
     }
 
-    public void setAvailable(boolean taken) {
+    public void setTaken(boolean taken) {
         this.taken = taken;
     }
 
@@ -120,21 +158,7 @@ public class Vehicle {
         return currentRenterId;
     }
 
-    public void setCurrentRenterId(int userId) {
-        this.currentRenterId = userId;
-    }
-
-    @Override
-    public String toString() {
-        return "Vehicle{" +
-                "id='" + id + "\'" +
-                ", modelName='" + modelName + '\'' +
-                ", color=" + color +
-                ", minCapacity=" + minCapacity +
-                ", pricePerDay=" + pricePerDay +
-                ", type=" + type +
-                ", taken=" + taken +
-                ", currentRenterId=" + currentRenterId +
-                '}';
+    public void setCurrentRenterId(int currentRenterId) {
+        this.currentRenterId = currentRenterId;
     }
 }

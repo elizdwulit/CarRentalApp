@@ -62,18 +62,27 @@ public class RentalService {
 
     /**
      * Get list of vehicles that meet requested trait requirements
+     * @param make Make of vehicle
+     * @param model Vehicle model
+     * @param year Year vehicle was manufactured
      * @param color Specified color
      * @param minCapacity The minimum number of seats needed in a vehicle
      * @param maxPrice Max price of vehicle
-     * @param vehicleType The type of vehicle
+     * @param type Type of vehicle
      * @return list of vehicles that match search criteria
      */
-    public List<Vehicle> getFilteredVehicles(Optional<String> color, Optional<Integer> minCapacity, Optional<String> maxPrice, Optional<Integer> vehicleType) {
-        return vehicleMap.values().stream()
-                .filter(v -> !v.isTaken() && (!color.isPresent() || v.getColor().equalsIgnoreCase(color.get())) // check if color was provided then use it for filter
-                        && (!minCapacity.isPresent() || v.getMinCapacity() <= minCapacity.get()) // check for minCapacity presence and add to filter
-                        && (!maxPrice.isPresent() || v.getPricePerDay() <= Integer.parseInt(maxPrice.get())) // check for maxPrice and add to filter
-                        && (!vehicleType.isPresent() || (vehicleType.get() == -1 || v.getType() == vehicleType.get()))) // -1 vehicleType param means any vehicle type is ok
+    public List<Vehicle> getFilteredVehicles(Optional<String> make, Optional<String> model, Optional<Integer> year,
+                                             Optional<String> color, Optional<Integer> minCapacity, Optional<String> maxPrice,
+                                             Optional<String> type) {
+        return vehicleMap.values().stream() // for filters, check if param is defined, then compare accordingly
+                .filter(v -> !v.isTaken()
+                        && (!make.isPresent() || v.getMake().equalsIgnoreCase(make.get()))
+                        && (!model.isPresent() || v.getColor().equalsIgnoreCase(model.get()))
+                        && (!year.isPresent() || v.getYear() == year.get())
+                        && (!color.isPresent() || v.getColor().equalsIgnoreCase(color.get()))
+                        && (!minCapacity.isPresent() || v.getMinCapacity() <= minCapacity.get())
+                        && (!maxPrice.isPresent() || v.getPricePerDay() <= Integer.parseInt(maxPrice.get()))
+                        && (!type.isPresent() || v.getType().equalsIgnoreCase(type.get())))
                 .collect(Collectors.toList());
     }
 
@@ -209,5 +218,52 @@ public class RentalService {
         }
         System.out.println("RentalService.getUserId -- END");
         return userId;
+    }
+
+    /**
+     * Add a vehicle to the internal map
+     * @param v New Vehicle
+     */
+    public void addVehicle(Vehicle v) {
+        vehicleMap.put(v.getId(), v);
+    }
+
+    /**
+     * Checks if the vehicle with the specified vid is currently being used, and if
+     * it is not, deletes a vehicle from the internal map.
+     * @param vid vehicle id
+     * @return true if successfully deleted, else false
+     */
+    public boolean deleteVehicle(int vid) {
+        try {
+            Vehicle foundVehicle = vehicleMap.get(vid);
+            if (foundVehicle.isTaken()) {
+                System.out.println("RentalService.deleteVehicle -- Vehicle is currently assigned to user " + foundVehicle.getCurrentRenterId() + ". Not deleting");
+                return false;
+            } else {
+                vehicleMap.remove(vid);
+            }
+        } catch (Exception e) {
+            System.out.println("RentalService.deleteVehicle -- Exception removing vehicle with vid " + vid + " from map");
+            System.out.println(e);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Replaces a vehicle in the vehicle map
+     * @param v New vehicle
+     * @return true if update successful, else false
+     */
+    public boolean replaceVehicle(Vehicle v) {
+        try {
+            vehicleMap.replace(v.getId(), v);
+        } catch (Exception e) {
+            System.out.println("RentalService.replaceVehicle -- Exception replacing vehicle with vid " + v.getId() + " in map");
+            System.out.println(e);
+            return false;
+        }
+        return true;
     }
 }

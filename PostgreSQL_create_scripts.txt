@@ -17,14 +17,15 @@ CREATE TABLE vehicle_types
 CREATE TABLE vehicles
 (
     id              SERIAL PRIMARY KEY UNIQUE,
-    model_name      VARCHAR(300),
+    make            VARCHAR(300),
+    model           VARCHAR(300),
+    year            INT,
     color           VARCHAR(300),
-    max_capacity    INT DEFAULT 0,
+    min_capacity    INT DEFAULT 0,
     daily_price     DECIMAL(10,2),
-    v_type          INT,
-    is_taken        INT,
-    curr_user_id    INT,
-    FOREIGN KEY (v_type) REFERENCES vehicle_types(id),
+    type            VARCHAR(300),
+    is_taken        BOOLEAN DEFAULT FALSE,
+    curr_user_id    INT DEFAULT 0,
     FOREIGN KEY (curr_user_id) REFERENCES users(id)
 );
 

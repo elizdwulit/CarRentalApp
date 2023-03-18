@@ -22,6 +22,9 @@ public class RentalController {
     /** TransactionManager object used for transaction logic */
     private TransactionManager transactionManager;
 
+    /** AdministrationManager object used for administrative endpoint logic */
+    private AdministrationManager adminManager;
+
     /**
      * Constructor
      *
@@ -46,19 +49,25 @@ public class RentalController {
 
     /**
      * Endpoint to get a list of vehicles, filtered by optional input parameters
+     * @param make Make of vehicle
+     * @param model Model of vehicle
+     * @param year Year vehicle was manufactured
      * @param color Vehicle color
      * @param minCapacity Number of seats needed in vehicle
      * @param maxPrice The max amount the user wants to spend
-     * @param vehicleType The type of vehicle
+     * @param type The type of vehicle
      * @return List of Vehicles that meet specifications
      */
     @GetMapping("/getFilteredVehicles")
     public List<Vehicle> getFilteredVehicles(
+            @RequestParam("make") Optional<String> make,
+            @RequestParam("model") Optional<String> model,
+            @RequestParam("year") Optional<Integer> year,
             @RequestParam("color") Optional<String> color,
             @RequestParam("minCapacity") Optional<Integer> minCapacity,
             @RequestParam("maxPrice") Optional<String> maxPrice,
-            @RequestParam("type") Optional<Integer> vehicleType) {
-        List<Vehicle> filteredVehicles = rentalService.getFilteredVehicles(color, minCapacity, maxPrice, vehicleType);
+            @RequestParam("type") Optional<String> type) {
+        List<Vehicle> filteredVehicles = rentalService.getFilteredVehicles(make, model, year, color, minCapacity, maxPrice, type);
         return filteredVehicles;
     }
 
@@ -113,5 +122,45 @@ public class RentalController {
             @RequestParam("vehicleId") int vehicleId,
             @RequestParam("userId") int userId) {
         return rentalService.returnVehicle(userId, vehicleId);
+    }
+
+    @PostMapping(path = "/admin/addVehicle", produces = {"text/plain", "application/*"})
+    public boolean addVehicle(
+            @RequestParam("make") String make,
+            @RequestParam("model") String model,
+            @RequestParam("year") int year,
+            @RequestParam("color") String color,
+            @RequestParam("minCapacity") int minCapacity,
+            @RequestParam("price") double pricePerDay,
+            @RequestParam("type") String type) {
+        Vehicle newVehicle = adminManager.addVehicle(make, model, year, color, minCapacity, pricePerDay, type);
+        rentalService.addVehicle(newVehicle);
+        return true;
+    }
+
+    @PostMapping(path = "/admin/updateVehicle", produces = {"text/plain", "application/*"})
+    public boolean updateVehicle(
+            @RequestParam("vid") Integer vid,
+            @RequestParam("make") String make,
+            @RequestParam("model") String model,
+            @RequestParam("year") int year,
+            @RequestParam("color") String color,
+            @RequestParam("minCapacity") int minCapacity,
+            @RequestParam("price") double pricePerDay,
+            @RequestParam("type") String type) {
+        Vehicle modifiedVehicle = adminManager.updateVehicle(vid, make, model, year, color, minCapacity, pricePerDay, type);
+        rentalService.replaceVehicle(modifiedVehicle);
+        return true;
+    }
+
+    @PostMapping(path = "/admin/deleteVehicle", produces = {"text/plain", "application/*"})
+    public boolean deleteVehicle(
+            @RequestParam("vid") Integer vehicleId) {
+        // add a check to make sure that a vehicle is not currently being used by someone before deleting from db
+        boolean canRemove = rentalService.deleteVehicle(vehicleId);
+        if (canRemove) {
+            return adminManager.deleteVehicle(vehicleId);
+        }
+        return false;
     }
 }
