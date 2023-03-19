@@ -152,7 +152,7 @@ public class RentalController {
             @RequestParam("capacity") int capacity,
             @RequestParam("price") double pricePerDay,
             @RequestParam("type") String type) {
-        Vehicle newVehicle = adminManager.addVehicle(make, model, year, color, minCapacity, pricePerDay, type);
+        Vehicle newVehicle = adminManager.addVehicle(make, model, year, color, capacity, pricePerDay, type);
         rentalService.addVehicle(newVehicle);
         return true;
     }

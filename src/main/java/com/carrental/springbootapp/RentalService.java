@@ -76,13 +76,13 @@ public class RentalService {
                                              Optional<String> type) {
         return vehicleMap.values().stream() // for filters, check if param is defined, then compare accordingly
                 .filter(v -> !v.isTaken()
-                        && (!make.isPresent() || v.getMake().equalsIgnoreCase(make.get()))
-                        && (!model.isPresent() || v.getColor().equalsIgnoreCase(model.get()))
-                        && (!year.isPresent() || v.getYear() == year.get())
-                        && (!color.isPresent() || v.getColor().equalsIgnoreCase(color.get()))
-                        && (!minCapacity.isPresent() || v.getCapacity() <= minCapacity.get())
-                        && (!maxPrice.isPresent() || v.getPricePerDay() <= Integer.parseInt(maxPrice.get()))
-                        && (!type.isPresent() || v.getType().equalsIgnoreCase(type.get())))
+                        && (make.isPresent() ? v.getMake().equalsIgnoreCase(make.get()) : true)
+                        && (model.isPresent() ? v.getColor().equalsIgnoreCase(model.get()) : true)
+                        && (year.isPresent() ? v.getYear() == year.get() : true)
+                        && (color.isPresent() ? v.getColor().equalsIgnoreCase(color.get()) : true)
+                        && (minCapacity.isPresent() ? v.getCapacity() >= minCapacity.get() : true)
+                        && (maxPrice.isPresent() ? v.getPricePerDay() <= Integer.parseInt(maxPrice.get()) : true)
+                        && (type.isPresent() ? v.getType().equalsIgnoreCase(type.get()) : true))
                 .collect(Collectors.toList());
     }
 
