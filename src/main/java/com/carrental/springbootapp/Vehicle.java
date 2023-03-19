@@ -29,7 +29,7 @@ public class Vehicle {
     private int capacity;
 
     /** Price the vehicle costs to rent (per day) */
-    private double pricePerDay;
+    private String pricePerDay;
 
     /** Type of vehicle (ex: car, truck, suv. etc) */
     private String type;
@@ -56,7 +56,7 @@ public class Vehicle {
      * @param pricePerDay
      * @param type
      */
-    public Vehicle(String make, String model, int year, String color, int capacity, double pricePerDay, String type) {
+    public Vehicle(String make, String model, int year, String color, int capacity, String pricePerDay, String type) {
         this.make = make;
         this.model = model;
         this.year = year;
@@ -130,11 +130,11 @@ public class Vehicle {
         this.capacity = capacity;
     }
 
-    public double getPricePerDay() {
+    public String getPricePerDay() {
         return pricePerDay;
     }
 
-    public void setPricePerDay(double pricePerDay) {
+    public void setPricePerDay(String pricePerDay) {
         this.pricePerDay = pricePerDay;
     }
 

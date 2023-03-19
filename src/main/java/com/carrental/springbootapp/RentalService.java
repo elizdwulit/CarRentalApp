@@ -81,7 +81,7 @@ public class RentalService {
                         && (year.isPresent() ? v.getYear() == year.get() : true)
                         && (color.isPresent() ? v.getColor().equalsIgnoreCase(color.get()) : true)
                         && (minCapacity.isPresent() ? v.getCapacity() >= minCapacity.get() : true)
-                        && (maxPrice.isPresent() ? v.getPricePerDay() <= Integer.parseInt(maxPrice.get()) : true)
+                        && (maxPrice.isPresent() ? Double.parseDouble(v.getPricePerDay()) <= Double.parseDouble(maxPrice.get()) : true)
                         && (type.isPresent() ? v.getType().equalsIgnoreCase(type.get()) : true))
                 .collect(Collectors.toList());
     }

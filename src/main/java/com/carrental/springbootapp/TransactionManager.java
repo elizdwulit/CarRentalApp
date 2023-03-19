@@ -47,7 +47,7 @@ public class TransactionManager {
         long numDays = getNumDaysBetweenDates(startDate, endDate);
 
         // get daily rate for vehicle
-        double vehicleDailyRate = vehicle.getPricePerDay();
+        double vehicleDailyRate = Double.parseDouble(vehicle.getPricePerDay());
 
         // calculate the total cost and return the total cost rounded up to 2 decimal places
         double totalCost = numDays * vehicleDailyRate;

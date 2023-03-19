@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -36,6 +37,7 @@ public class RentalController {
         rentalService.loadUsers(); // load all users
         rentalService.loadVehicles(); // load all vehicles
         transactionManager = new TransactionManager();
+        adminManager = new AdministrationManager();
     }
 
     /**
@@ -48,6 +50,17 @@ public class RentalController {
         rentalService.loadVehicles();
         List<Vehicle> vehicles = rentalService.getAllVehicles();
         return vehicles;
+    }
+
+    /**
+     * Endpoint to get a single vehicle by vid
+     * @param vid ID of vehicle
+     * @return Vehicle object
+     */
+    @CrossOrigin(maxAge = 3600)
+    @GetMapping("/getVehicle")
+    public Vehicle getVehicle(@RequestParam("vid") int vid) {
+        return rentalService.getVehicleFromId(vid);
     }
 
     /**
@@ -95,106 +108,115 @@ public class RentalController {
 
     /**
      * Endpoint used to rent a vehicle
-     * @param vehicleId ID of vehicle
-     * @param firstName User first name
-     * @param lastName User last name
-     * @param email User email
-     * @param phoneNum User phone number
-     * @param totalCost Total transaction cost amount
-     * @return int representing results of rent action
+     * @param queryParameters request query parameters
+     * @return int representing results of rent action, 0 indicates success
      */
     @CrossOrigin(maxAge = 3600)
     @PostMapping(path = "/rent", produces = {"text/plain", "application/*"})
-    public int rentVehicle(
-            @RequestParam("vid") int vehicleId,
-            @RequestParam("fname") String firstName,
-            @RequestParam("lname") String lastName,
-            @RequestParam("email") String email,
-            @RequestParam("phoneNum") String phoneNum,
-            @RequestParam("totalCost") double totalCost
-    ) {
-        User user = new User(firstName, lastName, email, phoneNum);
-        int rentResult = rentalService.rentVehicle(user, vehicleId, totalCost);
+    public int rentVehicle(@RequestParam Map<String, String> queryParameters) {
+        int rentResult  = -1;
+        try {
+            String firstName = queryParameters.get("fname");
+            String lastName = queryParameters.get("lname");
+            String email = queryParameters.get("email");
+            String phoneNum = queryParameters.get("phonenum");
+            int vid = Integer.parseInt(queryParameters.get("vid"));
+            double totalCost = Double.parseDouble(queryParameters.get("totalcost"));
+            User user = new User(firstName, lastName, email, phoneNum);
+            rentResult = rentalService.rentVehicle(user, vid, totalCost);
+        } catch (Exception e) {
+            System.out.println("RentalController.rentVehicle -- Exception renting vehicle");
+            System.out.println(e);
+        }
         return rentResult;
     }
 
     /**
      * Endpoint used to handle the return of a vehicle previously rented out
-     * @param vehicleId id of vehicle to rent
-     * @param userId id of user making the return
+     * @param queryParameters request query parameters
+     * @return true if return successful, else false
      */
     @CrossOrigin(maxAge = 3600)
     @PostMapping(path = "/returnVehicle", produces = {"text/plain", "application/*"})
-    public boolean returnVehicle(
-            @RequestParam("vehicleId") int vehicleId,
-            @RequestParam("userId") int userId) {
-        return rentalService.returnVehicle(userId, vehicleId);
+    public boolean returnVehicle(@RequestParam Map<String, String> queryParameters) {
+        boolean result = false;
+        try {
+            int userId = Integer.parseInt(queryParameters.get("userid"));
+            int vehicleId = Integer.parseInt(queryParameters.get("vid"));
+            result = rentalService.returnVehicle(userId, vehicleId);
+        } catch (Exception e) {
+            System.out.println("RentalController.returnVehicle -- Exception returning vehicle");
+            System.out.println(e);
+        }
+        return result;
     }
 
     /**
      * Admin endpoint to add a vehicle
-     * @param make vehicle make
-     * @param model vehicle model
-     * @param year vehicle year
-     * @param color vehicle color
-     * @param capacity vehicle
-     * @param pricePerDay vehicle price
-     * @param type vehicle type
+     * @param queryParameters request query parameters
      * @return true if vehicle was successfully added, else false
      */
     @CrossOrigin(maxAge = 3600)
-    @PostMapping(path = "/admin/addVehicle", produces = {"text/plain", "application/*"})
-    public boolean addVehicle(
-            @RequestParam("make") String make,
-            @RequestParam("model") String model,
-            @RequestParam("year") int year,
-            @RequestParam("color") String color,
-            @RequestParam("capacity") int capacity,
-            @RequestParam("price") double pricePerDay,
-            @RequestParam("type") String type) {
-        Vehicle newVehicle = adminManager.addVehicle(make, model, year, color, capacity, pricePerDay, type);
-        rentalService.addVehicle(newVehicle);
+    @PostMapping(path = "/addVehicle", produces = {"text/plain", "application/*"})
+    public boolean addVehicle(@RequestParam Map<String, String> queryParameters) {
+        try {
+            String make = queryParameters.get("make");
+            String model = queryParameters.get("model");
+            int year = Integer.parseInt(queryParameters.get("year"));
+            String color = queryParameters.get("color");
+            int capacity = Integer.parseInt(queryParameters.get("capacity"));
+            String pricePerDay = queryParameters.get("price");
+            String type = queryParameters.get("type");
+            Vehicle newVehicle = adminManager.addVehicle(make, model, year, color, capacity, pricePerDay, type);
+            rentalService.addVehicle(newVehicle);
+        } catch (Exception e) {
+            System.out.println("RentalController.addVehicle -- Exception adding vehicle");
+            System.out.println(e);
+            return false;
+        }
         return true;
     }
 
     /**
      * Update an existing vehicle corresponding to given vehicle id
-     * @param vid vehicle id
-     * @param make vehicle make
-     * @param model vehicle model
-     * @param year vehicle year
-     * @param color vehicle color
-     * @param capacity vehicle capacity
-     * @param pricePerDay vehicle price per day
-     * @param type vehicle type
+     * @param queryParameters request query parameters
      * @return true if update successful, else false
      */
-    @PostMapping(path = "/admin/updateVehicle", produces = {"text/plain", "application/*"})
-    public boolean updateVehicle(
-            @RequestParam("vid") Integer vid,
-            @RequestParam("make") String make,
-            @RequestParam("model") String model,
-            @RequestParam("year") int year,
-            @RequestParam("color") String color,
-            @RequestParam("capacity") int capacity,
-            @RequestParam("price") double pricePerDay,
-            @RequestParam("type") String type) {
-        Vehicle modifiedVehicle = adminManager.updateVehicle(vid, make, model, year, color, capacity, pricePerDay, type);
-        return rentalService.replaceVehicle(modifiedVehicle);
+    @CrossOrigin(maxAge = 3600)
+    @PostMapping(path = "/updateVehicle", produces = {"text/plain", "application/*"})
+    public boolean updateVehicle(@RequestParam Map<String, String> queryParameters) {
+        try {
+            int vid = Integer.parseInt(queryParameters.get("vid"));
+            String make = queryParameters.get("make");
+            String model = queryParameters.get("model");
+            int year = Integer.parseInt(queryParameters.get("year"));
+            String color = queryParameters.get("color");
+            int capacity = Integer.parseInt(queryParameters.get("capacity"));
+            String pricePerDay = queryParameters.get("price");
+            String type = queryParameters.get("type");
+            Vehicle modifiedVehicle = adminManager.updateVehicle(vid, make, model, year, color, capacity, pricePerDay, type);
+            rentalService.replaceVehicle(modifiedVehicle);
+        } catch (Exception e) {
+            System.out.println("RentalController.updateVehicle -- Exception adding vehicle");
+            System.out.println(e);
+            return false;
+        }
+        return true;
     }
 
     /**
      * Deletes a vehicle corresponding to specified vehicle id from system
-     * @param vehicleId id of vehicle to delete
+     * @param queryParameters request query parameters
      * @return true if delete successful, else false
      */
-    @PostMapping(path = "/admin/deleteVehicle", produces = {"text/plain", "application/*"})
-    public boolean deleteVehicle(
-            @RequestParam("vid") Integer vehicleId) {
+    @CrossOrigin(maxAge = 3600)
+    @PostMapping(path = "/deleteVehicle", produces = {"text/plain", "application/*"})
+    public boolean deleteVehicle(@RequestParam Map<String, String> queryParameters) {
+        int vid = Integer.parseInt(queryParameters.get("vid"));
         // add a check to make sure that a vehicle is not currently being used by someone before deleting from db
-        boolean canRemove = rentalService.deleteVehicle(vehicleId);
+        boolean canRemove = rentalService.deleteVehicle(vid);
         if (canRemove) {
-            return adminManager.deleteVehicle(vehicleId);
+            return adminManager.deleteVehicle(vid);
         }
         return false;
     }

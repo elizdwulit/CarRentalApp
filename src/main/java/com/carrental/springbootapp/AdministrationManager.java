@@ -29,9 +29,9 @@ public class AdministrationManager {
      * @param capacity
      * @param pricePerDay
      * @param type
-     * @return new Vehicle
+     * @return new Vehicle with vid set
      */
-    public Vehicle addVehicle(String model, String make, int year, String color, int capacity, double pricePerDay, String type) {
+    public Vehicle addVehicle(String model, String make, int year, String color, int capacity, String pricePerDay, String type) {
         System.out.println("AdministrationManager.addVehicle -- BEGIN");
         Vehicle v = new Vehicle(model, make, year, color, capacity, pricePerDay, type);
         int addedVehicleId = dbManager.addVehicle(v);
@@ -68,7 +68,7 @@ public class AdministrationManager {
      * @param type
      * @return Vehicle object containing update information
      */
-    public Vehicle updateVehicle(int vid, String model, String make, int year, String color, int minCapacity, double pricePerDay, String type) {
+    public Vehicle updateVehicle(int vid, String model, String make, int year, String color, int minCapacity, String pricePerDay, String type) {
         System.out.println("AdministrationManager.updateVehicle -- BEGIN");
         Vehicle v = new Vehicle(model, make, year, color, minCapacity, pricePerDay, type);
         v.setId(vid);

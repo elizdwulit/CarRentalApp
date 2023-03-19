@@ -75,7 +75,7 @@ public class DatabaseManager {
                 v.setYear(rs.getInt("year"));
                 v.setColor(rs.getString("color"));
                 v.setCapacity(rs.getInt("capacity"));
-                v.setPricePerDay(rs.getDouble("daily_price"));
+                v.setPricePerDay(rs.getString("daily_price"));
                 v.setType(rs.getString("type"));
                 v.setTaken(rs.getBoolean("is_taken"));
                 v.setCurrentRenterId(rs.getInt("curr_user_id"));
@@ -294,8 +294,8 @@ public class DatabaseManager {
         System.out.println("DatabaseManager.addVehicle -- BEGIN");
 
         int addedVehicleId = -1; // default -1
-        String sqlStr = "INSERT INTO vehicles (make, model, year, color, capacity, daily_price, v_type, is_taken, curr_user_id) "
-                + " VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sqlStr = "INSERT INTO vehicles (make, model, year, color, capacity, daily_price, type, is_taken, curr_user_id) "
+                + " VALUES (?, ?, ?, ?, ?, ?, ?, ? , ?) RETURNING id";
         try {
             Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
             // Create statement to insert the vehicle into the db
@@ -306,7 +306,7 @@ public class DatabaseManager {
             pstmt.setInt(++i, v.getYear());
             pstmt.setString(++i, v.getColor());
             pstmt.setInt(++i, v.getCapacity());
-            pstmt.setDouble(++i, v.getPricePerDay());
+            pstmt.setDouble(++i, Double.parseDouble(v.getPricePerDay()));
             pstmt.setString(++i, v.getType());
             pstmt.setBoolean(++i, false);
             pstmt.setInt(++i, -1);
@@ -315,7 +315,7 @@ public class DatabaseManager {
                 addedVehicleId = rs.getInt("id");
             }
         } catch (Exception e) {
-            System.out.println("DatabaseManager.addUser -- Exception adding user");
+            System.out.println("DatabaseManager.addVehicle -- Exception adding vehicle");
             System.out.println(e);
         }
         return addedVehicleId;
@@ -358,21 +358,21 @@ public class DatabaseManager {
 
         boolean updateSuccessful = false;
         String sqlStr = "UPDATE vehicles SET"
-                + " make =" + v.getMake()
-                + ", model =" + v.getModel()
-                + ", year =" + v.getYear()
-                + ", color =" + v.getColor()
-                + ", capacity =" + v.getCapacity()
-                + ", daily_price =" + v.getPricePerDay()
-                + ", type =" + v.getType()
+                + " make='" + v.getMake() + "'"
+                + ", model='" + v.getModel() + "'"
+                + ", year=" + v.getYear()
+                + ", color='" + v.getColor() + "'"
+                + ", capacity=" + v.getCapacity()
+                + ", daily_price='" + v.getPricePerDay()  + "'"
+                + ", type='" + v.getType() + "'"
                 + " WHERE id = " + vid;
         try(Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
             PreparedStatement st = conn.prepareStatement(sqlStr)) {
             st.executeUpdate();
             updateSuccessful = true;
-            System.out.println("DatabaseManager.updateVehicle -- Successfully deleted vehicle: " + vid);
+            System.out.println("DatabaseManager.updateVehicle -- Successfully updated vehicle: " + vid);
         } catch (Exception e) {
-            System.out.println("DatabaseManager.updateVehicle -- Exception deleting vehicle " + vid);
+            System.out.println("DatabaseManager.updateVehicle -- Exception updating vehicle " + vid);
             System.out.println(e);
         }
 
