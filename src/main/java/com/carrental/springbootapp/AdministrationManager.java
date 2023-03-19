@@ -76,4 +76,56 @@ public class AdministrationManager {
         System.out.println("AdministrationManager.updateVehicle -- END");
         return v;
     }
+
+    /**
+     * Adds a user to the database
+     * @param fname User first name
+     * @param lname User last name
+     * @param email User email
+     * @param phoneNum User phone number
+     * @return Created User
+     */
+    public User addUser(String fname, String lname, String email, String phoneNum) {
+        System.out.println("AdministrationManager.addUser -- BEGIN");
+        User user = new User(fname, lname, email, phoneNum);
+        int addedUserId = dbManager.addUser(user);
+        if (addedUserId == -1) {
+            System.out.println("AdministrationManager.addUser -- Failed to add user");
+        }
+        user.setId(addedUserId);
+        System.out.println("AdministrationManager.addUser -- Added new user with userId=" + addedUserId);
+        System.out.println("AdministrationManager.addUser -- END");
+        return user;
+    }
+
+    /**
+     * Delete a user from the database
+     * @param userId id of user to delete
+     * @return true if delete successful, else false
+     */
+    public boolean deleteUser(int userId) {
+        System.out.println("AdministrationManager.deleteUser -- BEGIN");
+        System.out.println("AdministrationManager.deleteUser -- Deleting user with userId=" + userId);
+        boolean deleteSuccessful = dbManager.deleteUser(userId);
+        System.out.println("AdministrationManager.deleteUser -- END");
+        return deleteSuccessful;
+    }
+
+    /**
+     * Modify a user in the database
+     * @param userId id of user to modify
+     * @param fname new first name
+     * @param lname new last name
+     * @param email new email
+     * @param phoneNum new phone number
+     * @return New User object
+     */
+    public User modifyUser(int userId, String fname, String lname, String email, String phoneNum) {
+        System.out.println("AdministrationManager.modifyUser -- BEGIN");
+        User user = new User(fname, lname, email, phoneNum);
+        user.setId(userId);
+        dbManager.modifyUser(userId, user);
+        System.out.println("AdministrationManager.modifyUser -- END");
+        return user;
+    }
 }

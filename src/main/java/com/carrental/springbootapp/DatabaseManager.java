@@ -180,7 +180,7 @@ public class DatabaseManager {
                 user.setFirstName(rs.getString("first_name"));
                 user.setLastName(rs.getString("last_name"));
                 user.setEmail(rs.getString("email"));
-                user.setPhoneNum(rs.getString("phoneNum"));
+                user.setPhoneNum(rs.getString("phone_num"));
 
                 foundUsers.put(userId, user);
             }
@@ -221,15 +221,16 @@ public class DatabaseManager {
         int addedUserId = -1;
 
         String sqlStr = "INSERT INTO users (first_name, last_name, email, phone_num) "
-                    + " VALUES (?, ?, ?, ?,) RETURNING id";
+                    + " VALUES (?, ?, ?, ?) RETURNING id";
         try {
             Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
             // Create statement to insert the user into the db
             PreparedStatement pstmt = conn.prepareStatement(sqlStr);
-            pstmt.setString(1, firstName);
-            pstmt.setString(2, lastName);
-            pstmt.setString(3, email);
-            pstmt.setString(4, phoneNum);
+            int i = 0;
+            pstmt.setString(++i, firstName);
+            pstmt.setString(++i, lastName);
+            pstmt.setString(++i, email);
+            pstmt.setString(++i, phoneNum);
             ResultSet rs = pstmt.executeQuery();
             while(rs.next()) { // get the resulting ID of the inserted row
                 addedUserId = rs.getInt("id");
@@ -271,18 +272,32 @@ public class DatabaseManager {
     }
 
     /**
-     * NOT PLANNING TO BE USED -- Modify a user entry in the db
-     *
+     * Modify a user entry in the db
+     * @param userId ID of user to update information for
      * @param user user info to replace
      * @return true if update successful, else false
      */
-    public boolean modifyUser(User user) {
+    public boolean modifyUser(int userId, User user) {
         System.out.println("DatabaseManager.modifyUser -- BEGIN");
-
-        // This method is not needed for this level of prototype, but it is here for future if desired
-
+        System.out.println("DatabaseManager.modifyUser -- Modifying user with userId=" + userId);
+        boolean updateSuccessful = false;
+        String sqlStr = "UPDATE users SET"
+                + " first_name='" + user.getFirstName() + "'"
+                + ", last_name='" + user.getLastName() + "'"
+                + ", email='" + user.getEmail() + "'"
+                + ", phone_num='" + user.getPhoneNum() + "'"
+                + " WHERE id = " + userId;
+        try(Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
+            PreparedStatement st = conn.prepareStatement(sqlStr)) {
+            st.executeUpdate();
+            updateSuccessful = true;
+            System.out.println("DatabaseManager.modifyUser -- Successfully updated user: " + userId);
+        } catch (Exception e) {
+            System.out.println("DatabaseManager.modifyUser -- Exception updating vehicle " + userId);
+            System.out.println(e);
+        }
         System.out.println("DatabaseManager.modifyUser -- END");
-        return false;
+        return updateSuccessful;
     }
 
     /**
@@ -331,7 +346,7 @@ public class DatabaseManager {
         System.out.println("DatabaseManager.deleteVehicle -- Deleting user with id=" + vehicleId);
 
         boolean deleteSuccessful = false;
-        String sqlStr = "DELETE FROM vehicles WHERE id = " + vehicleId;
+        String sqlStr = "DELETE FROM vehicles WHERE id = " + vehicleId + " AND curr_user > 0";
         try(Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
             PreparedStatement st = conn.prepareStatement(sqlStr)) {
             st.executeUpdate();

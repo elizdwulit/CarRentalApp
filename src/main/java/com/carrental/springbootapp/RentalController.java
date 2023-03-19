@@ -168,7 +168,7 @@ public class RentalController {
             String pricePerDay = queryParameters.get("price");
             String type = queryParameters.get("type");
             Vehicle newVehicle = adminManager.addVehicle(make, model, year, color, capacity, pricePerDay, type);
-            rentalService.addVehicle(newVehicle);
+            rentalService.loadVehicles();
         } catch (Exception e) {
             System.out.println("RentalController.addVehicle -- Exception adding vehicle");
             System.out.println(e);
@@ -212,12 +212,82 @@ public class RentalController {
     @CrossOrigin(maxAge = 3600)
     @PostMapping(path = "/deleteVehicle", produces = {"text/plain", "application/*"})
     public boolean deleteVehicle(@RequestParam Map<String, String> queryParameters) {
-        int vid = Integer.parseInt(queryParameters.get("vid"));
-        // add a check to make sure that a vehicle is not currently being used by someone before deleting from db
-        boolean canRemove = rentalService.deleteVehicle(vid);
-        if (canRemove) {
-            return adminManager.deleteVehicle(vid);
+            try {
+            int vid = Integer.parseInt(queryParameters.get("vid"));
+            adminManager.deleteVehicle(vid);
+            rentalService.loadVehicles();
+            return true;
+        } catch (Exception e) {
+            System.out.println("RentalController.deleteVehicle -- Exception deleting vehicle");
+            System.out.println(e);
+            return false;
         }
-        return false;
+    }
+
+    /**
+     * Endpoint to add a user to the system
+     * @param queryParameters Query Parameters
+     * @return true if add successful, else false
+     */
+    @CrossOrigin(maxAge = 3600)
+    @PostMapping(path = "/addUser", produces = {"text/plain", "application/*"})
+    public boolean addUser(@RequestParam Map<String, String> queryParameters) {
+        String fname = queryParameters.get("fname");
+        String lname = queryParameters.get("lname");
+        String email = queryParameters.get("email");
+        String phoneNum = queryParameters.get("phoneNum");
+        User newUser = adminManager.addUser(fname, lname, email, phoneNum);
+        rentalService.loadUsers();
+        return newUser != null;
+    }
+
+    /**
+     * Endpoint to get a single user by userid
+     * @param userId ID of user
+     * @return Vehicle object
+     */
+    @CrossOrigin(maxAge = 3600)
+    @GetMapping("/getUser")
+    public User getUser(@RequestParam("id") int userId) {
+        return rentalService.getUserFromId(userId);
+    }
+
+    /**
+     * Endpoint used to modify an existing user
+     * @param queryParameters Query Parameters containing id of user to modify and new user information
+     * @return true if modify successful, else false
+     */
+    @CrossOrigin(maxAge = 3600)
+    @PostMapping(path = "/modifyUser", produces = {"text/plain", "application/*"})
+    public boolean modifyUser(@RequestParam Map<String, String> queryParameters) {
+        try {
+            int id = Integer.parseInt(queryParameters.get("id"));
+            String fname = queryParameters.get("fname");
+            String lname = queryParameters.get("lname");
+            String email = queryParameters.get("email");
+            String phoneNum = queryParameters.get("phoneNum");
+            adminManager.modifyUser(id, fname, lname, email, phoneNum);
+            rentalService.loadUsers();
+            return true;
+        } catch (Exception e) {
+            System.out.println("RentalController.modifyUser -- Exception modifying user");
+            System.out.println(e);
+            return false;
+        }
+    }
+
+    @CrossOrigin(maxAge = 3600)
+    @PostMapping(path = "/deleteUser", produces = {"text/plain", "application/*"})
+    public boolean deleteUser(@RequestParam Map<String, String> queryParameters) {
+        boolean result = false;
+        try {
+            int id = Integer.parseInt(queryParameters.get("id"));
+            result = adminManager.deleteUser(id);
+            rentalService.loadUsers();
+        } catch (Exception e) {
+            System.out.println("RentalController.deleteUser -- Exception deleting user");
+            System.out.println(e);
+        }
+        return result;
     }
 }

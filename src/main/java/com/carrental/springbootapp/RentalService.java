@@ -100,6 +100,19 @@ public class RentalService {
     }
 
     /**
+     * Get a User object that has the specified user id
+     * @param userId id of user
+     * @return User object if found in the system, else returns null
+     */
+    public User getUserFromId(int userId) {
+        User foundUser = usersMap.get(userId);
+        if (foundUser == null) {
+            System.out.println("RentalService.getUserFromId -- No user found for user id: " + userId);
+        }
+        return foundUser;
+    }
+
+    /**
      * Handles renting a vehicle
      *
      * @param user User doing the rental
@@ -218,37 +231,6 @@ public class RentalService {
         }
         System.out.println("RentalService.getUserId -- END");
         return userId;
-    }
-
-    /**
-     * Add a vehicle to the internal map
-     * @param v New Vehicle
-     */
-    public void addVehicle(Vehicle v) {
-        vehicleMap.put(v.getId(), v);
-    }
-
-    /**
-     * Checks if the vehicle with the specified vid is currently being used, and if
-     * it is not, deletes a vehicle from the internal map.
-     * @param vid vehicle id
-     * @return true if successfully deleted, else false
-     */
-    public boolean deleteVehicle(int vid) {
-        try {
-            Vehicle foundVehicle = vehicleMap.get(vid);
-            if (foundVehicle.isTaken()) {
-                System.out.println("RentalService.deleteVehicle -- Vehicle is currently assigned to user " + foundVehicle.getCurrentRenterId() + ". Not deleting");
-                return false;
-            } else {
-                vehicleMap.remove(vid);
-            }
-        } catch (Exception e) {
-            System.out.println("RentalService.deleteVehicle -- Exception removing vehicle with vid " + vid + " from map");
-            System.out.println(e);
-            return false;
-        }
-        return true;
     }
 
     /**
