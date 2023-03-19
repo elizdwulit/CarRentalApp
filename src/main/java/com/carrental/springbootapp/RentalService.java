@@ -80,7 +80,7 @@ public class RentalService {
                         && (!model.isPresent() || v.getColor().equalsIgnoreCase(model.get()))
                         && (!year.isPresent() || v.getYear() == year.get())
                         && (!color.isPresent() || v.getColor().equalsIgnoreCase(color.get()))
-                        && (!minCapacity.isPresent() || v.getMinCapacity() <= minCapacity.get())
+                        && (!minCapacity.isPresent() || v.getCapacity() <= minCapacity.get())
                         && (!maxPrice.isPresent() || v.getPricePerDay() <= Integer.parseInt(maxPrice.get()))
                         && (!type.isPresent() || v.getType().equalsIgnoreCase(type.get())))
                 .collect(Collectors.toList());

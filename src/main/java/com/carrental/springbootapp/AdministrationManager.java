@@ -26,14 +26,14 @@ public class AdministrationManager {
      * @param make
      * @param year
      * @param color
-     * @param minCapacity
+     * @param capacity
      * @param pricePerDay
      * @param type
      * @return new Vehicle
      */
-    public Vehicle addVehicle(String model, String make, int year, String color, int minCapacity, double pricePerDay, String type) {
+    public Vehicle addVehicle(String model, String make, int year, String color, int capacity, double pricePerDay, String type) {
         System.out.println("AdministrationManager.addVehicle -- BEGIN");
-        Vehicle v = new Vehicle(model, make, year, color, minCapacity, pricePerDay, type);
+        Vehicle v = new Vehicle(model, make, year, color, capacity, pricePerDay, type);
         int addedVehicleId = dbManager.addVehicle(v);
         if (addedVehicleId == -1) {
             System.out.println("AdministrationManager.addVehicle -- Failed to add vehicle");

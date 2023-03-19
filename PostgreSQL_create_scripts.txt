@@ -21,12 +21,11 @@ CREATE TABLE vehicles
     model           VARCHAR(300),
     year            INT,
     color           VARCHAR(300),
-    min_capacity    INT DEFAULT 0,
+    capacity        INT DEFAULT 0,
     daily_price     DECIMAL(10,2),
     type            VARCHAR(300),
     is_taken        BOOLEAN DEFAULT FALSE,
-    curr_user_id    INT DEFAULT 0,
-    FOREIGN KEY (curr_user_id) REFERENCES users(id)
+    curr_user_id    INT DEFAULT 0
 );
 
 CREATE TABLE transaction_types

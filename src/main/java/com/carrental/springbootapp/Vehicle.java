@@ -25,8 +25,8 @@ public class Vehicle {
     /** Color of vehicle */
     private String color;
 
-    /** The minimum number of people the vehicle can accommodate */
-    private int minCapacity;
+    /** The number of people the vehicle can accommodate */
+    private int capacity;
 
     /** Price the vehicle costs to rent (per day) */
     private double pricePerDay;
@@ -52,16 +52,16 @@ public class Vehicle {
      * @param model
      * @param year
      * @param color
-     * @param minCapacity
+     * @param capacity
      * @param pricePerDay
      * @param type
      */
-    public Vehicle(String make, String model, int year, String color, int minCapacity, double pricePerDay, String type) {
+    public Vehicle(String make, String model, int year, String color, int capacity, double pricePerDay, String type) {
         this.make = make;
         this.model = model;
         this.year = year;
         this.color = color;
-        this.minCapacity = minCapacity;
+        this.capacity = capacity;
         this.pricePerDay = pricePerDay;
         this.type = type;
     }
@@ -74,7 +74,7 @@ public class Vehicle {
                 ", model='" + model + '\'' +
                 ", year=" + year +
                 ", color='" + color + '\'' +
-                ", minCapacity=" + minCapacity +
+                ", capacity=" + capacity +
                 ", pricePerDay=" + pricePerDay +
                 ", type='" + type + '\'' +
                 ", taken=" + taken +
@@ -122,12 +122,12 @@ public class Vehicle {
         this.color = color;
     }
 
-    public int getMinCapacity() {
-        return minCapacity;
+    public int getCapacity() {
+        return capacity;
     }
 
-    public void setMinCapacity(int minCapacity) {
-        this.minCapacity = minCapacity;
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
     }
 
     public double getPricePerDay() {

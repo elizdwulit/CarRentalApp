@@ -16,7 +16,7 @@ import java.util.Properties;
  *
  * The database has the following tables:
  * users [id, timestamp, first_name, last_name, email, phone_num]
- * vehicles [id, make, model, year, color, min_capacity, daily_price, type, is_taken, curr_user]
+ * vehicles [id, make, model, year, color, capacity, daily_price, type, is_taken, curr_user]
  * transaction_history [id, timestamp, user_id, vehicle_id, total_amount, transaction_type]
  * transcation_types [id, name]
  */
@@ -74,7 +74,7 @@ public class DatabaseManager {
                 v.setModel(rs.getString("model"));
                 v.setYear(rs.getInt("year"));
                 v.setColor(rs.getString("color"));
-                v.setMinCapacity(rs.getInt("min_capacity"));
+                v.setCapacity(rs.getInt("capacity"));
                 v.setPricePerDay(rs.getDouble("daily_price"));
                 v.setType(rs.getString("type"));
                 v.setTaken(rs.getBoolean("is_taken"));
@@ -294,7 +294,7 @@ public class DatabaseManager {
         System.out.println("DatabaseManager.addVehicle -- BEGIN");
 
         int addedVehicleId = -1; // default -1
-        String sqlStr = "INSERT INTO vehicles (make, model, year, color, min_capacity, daily_price, v_type, is_taken, curr_user_id) "
+        String sqlStr = "INSERT INTO vehicles (make, model, year, color, capacity, daily_price, v_type, is_taken, curr_user_id) "
                 + " VALUES (?, ?, ?, ?, ?, ?, ?)";
         try {
             Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
@@ -305,7 +305,7 @@ public class DatabaseManager {
             pstmt.setString(++i, v.getModel());
             pstmt.setInt(++i, v.getYear());
             pstmt.setString(++i, v.getColor());
-            pstmt.setInt(++i, v.getMinCapacity());
+            pstmt.setInt(++i, v.getCapacity());
             pstmt.setDouble(++i, v.getPricePerDay());
             pstmt.setString(++i, v.getType());
             pstmt.setBoolean(++i, false);
@@ -362,7 +362,7 @@ public class DatabaseManager {
                 + ", model =" + v.getModel()
                 + ", year =" + v.getYear()
                 + ", color =" + v.getColor()
-                + ", min_capacity =" + v.getMinCapacity()
+                + ", capacity =" + v.getCapacity()
                 + ", daily_price =" + v.getPricePerDay()
                 + ", type =" + v.getType()
                 + " WHERE id = " + vid;

@@ -5,6 +5,7 @@
 /////////////////////////////////////////////////////////
 package com.carrental.springbootapp;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,8 +42,10 @@ public class RentalController {
      * Endpoint to get all vehicles in the rental system
      * @return list of Vehicle objects
      */
+    @CrossOrigin(maxAge = 3600)
     @GetMapping("/getAllVehicles")
     public List<Vehicle> getAllVehicles() {
+        rentalService.loadVehicles();
         List<Vehicle> vehicles = rentalService.getAllVehicles();
         return vehicles;
     }
@@ -58,6 +61,7 @@ public class RentalController {
      * @param type The type of vehicle
      * @return List of Vehicles that meet specifications
      */
+    @CrossOrigin(maxAge = 3600)
     @GetMapping("/getFilteredVehicles")
     public List<Vehicle> getFilteredVehicles(
             @RequestParam("make") Optional<String> make,
@@ -78,6 +82,7 @@ public class RentalController {
      * @param endDate Rental end date
      * @return total cost of vehicle, rounded to 2 decimal places
      */
+    @CrossOrigin(maxAge = 3600)
     @GetMapping("/getTotalCost")
     public double getTotalCost(
             @RequestParam("vehicleId") int vid,
@@ -98,6 +103,7 @@ public class RentalController {
      * @param totalCost Total transaction cost amount
      * @return int representing results of rent action
      */
+    @CrossOrigin(maxAge = 3600)
     @PostMapping(path = "/rent", produces = {"text/plain", "application/*"})
     public int rentVehicle(
             @RequestParam("vid") int vehicleId,
@@ -117,6 +123,7 @@ public class RentalController {
      * @param vehicleId id of vehicle to rent
      * @param userId id of user making the return
      */
+    @CrossOrigin(maxAge = 3600)
     @PostMapping(path = "/returnVehicle", produces = {"text/plain", "application/*"})
     public boolean returnVehicle(
             @RequestParam("vehicleId") int vehicleId,
@@ -124,13 +131,25 @@ public class RentalController {
         return rentalService.returnVehicle(userId, vehicleId);
     }
 
+    /**
+     * Admin endpoint to add a vehicle
+     * @param make vehicle make
+     * @param model vehicle model
+     * @param year vehicle year
+     * @param color vehicle color
+     * @param capacity vehicle
+     * @param pricePerDay vehicle price
+     * @param type
+     * @return
+     */
+    @CrossOrigin(maxAge = 3600)
     @PostMapping(path = "/admin/addVehicle", produces = {"text/plain", "application/*"})
     public boolean addVehicle(
             @RequestParam("make") String make,
             @RequestParam("model") String model,
             @RequestParam("year") int year,
             @RequestParam("color") String color,
-            @RequestParam("minCapacity") int minCapacity,
+            @RequestParam("capacity") int capacity,
             @RequestParam("price") double pricePerDay,
             @RequestParam("type") String type) {
         Vehicle newVehicle = adminManager.addVehicle(make, model, year, color, minCapacity, pricePerDay, type);
