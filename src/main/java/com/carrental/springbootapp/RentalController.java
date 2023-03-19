@@ -139,8 +139,8 @@ public class RentalController {
      * @param color vehicle color
      * @param capacity vehicle
      * @param pricePerDay vehicle price
-     * @param type
-     * @return
+     * @param type vehicle type
+     * @return true if vehicle was successfully added, else false
      */
     @CrossOrigin(maxAge = 3600)
     @PostMapping(path = "/admin/addVehicle", produces = {"text/plain", "application/*"})
@@ -157,6 +157,18 @@ public class RentalController {
         return true;
     }
 
+    /**
+     * Update an existing vehicle corresponding to given vehicle id
+     * @param vid vehicle id
+     * @param make vehicle make
+     * @param model vehicle model
+     * @param year vehicle year
+     * @param color vehicle color
+     * @param capacity vehicle capacity
+     * @param pricePerDay vehicle price per day
+     * @param type vehicle type
+     * @return true if update successful, else false
+     */
     @PostMapping(path = "/admin/updateVehicle", produces = {"text/plain", "application/*"})
     public boolean updateVehicle(
             @RequestParam("vid") Integer vid,
@@ -164,14 +176,18 @@ public class RentalController {
             @RequestParam("model") String model,
             @RequestParam("year") int year,
             @RequestParam("color") String color,
-            @RequestParam("minCapacity") int minCapacity,
+            @RequestParam("capacity") int capacity,
             @RequestParam("price") double pricePerDay,
             @RequestParam("type") String type) {
-        Vehicle modifiedVehicle = adminManager.updateVehicle(vid, make, model, year, color, minCapacity, pricePerDay, type);
-        rentalService.replaceVehicle(modifiedVehicle);
-        return true;
+        Vehicle modifiedVehicle = adminManager.updateVehicle(vid, make, model, year, color, capacity, pricePerDay, type);
+        return rentalService.replaceVehicle(modifiedVehicle);
     }
 
+    /**
+     * Deletes a vehicle corresponding to specified vehicle id from system
+     * @param vehicleId id of vehicle to delete
+     * @return true if delete successful, else false
+     */
     @PostMapping(path = "/admin/deleteVehicle", produces = {"text/plain", "application/*"})
     public boolean deleteVehicle(
             @RequestParam("vid") Integer vehicleId) {
