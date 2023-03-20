@@ -40,6 +40,9 @@ public class Vehicle {
     /** The id of the user currently renting out the vehicle */
     private int currentRenterId;
 
+    /** The url to an image of the vehicle */
+    private String imgUrl;
+
     /**
      * Empty constructor
      */
@@ -160,5 +163,13 @@ public class Vehicle {
 
     public void setCurrentRenterId(int currentRenterId) {
         this.currentRenterId = currentRenterId;
+    }
+
+    public String getImgUrl() {
+        return imgUrl;
+    }
+
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
     }
 }

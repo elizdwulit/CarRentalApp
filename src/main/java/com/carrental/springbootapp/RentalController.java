@@ -53,6 +53,46 @@ public class RentalController {
     }
 
     /**
+     * Endpoint to return all vehicle makes in the system
+     * @return Array of vehicle make names
+     */
+    @CrossOrigin(maxAge = 3600)
+    @GetMapping("/getAllMakes")
+    public String[] getAllMakes() {
+        return rentalService.getAllMakes().toArray(new String[0]);
+    }
+
+    /**
+     * Endpoint to return all vehicle models in the system
+     * @return Array of vehicle model names
+     */
+    @CrossOrigin(maxAge = 3600)
+    @GetMapping("/getAllModels")
+    public String[] getAllModels() {
+        return rentalService.getAllModels().toArray(new String[0]);
+    }
+
+    /**
+     * Endpoint to return all vehicle colors in the system
+     * @return Array of vehicle color names
+     */
+    @CrossOrigin(maxAge = 3600)
+    @GetMapping("/getAllColors")
+    public String[] getAllColors() {
+        return rentalService.getAllColors().toArray(new String[0]);
+    }
+
+    /**
+     * Endpoint to return all vehicle types in the system
+     * @return Array of vehicle type names
+     */
+    @CrossOrigin(maxAge = 3600)
+    @GetMapping("/getAllVehicleTypes")
+    public String[] getAllVehicleTypes() {
+        return rentalService.getAllVehicleTypes().toArray(new String[0]);
+    }
+
+    /**
      * Endpoint to get a single vehicle by vid
      * @param vid ID of vehicle
      * @return Vehicle object

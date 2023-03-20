@@ -5,10 +5,13 @@
 /////////////////////////////////////////////////////////
 package com.carrental.springbootapp;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +31,18 @@ public class RentalService {
     /** Map used to store information of users registered in the system */
     private Map<Integer, User> usersMap = new HashMap<>();
 
+    /** Set of all vehicle makes in the system */
+    private Set<String> vehicleMakes = new HashSet<>();
+
+    /** Set of all vehicle models in the system */
+    private Set<String> vehicleModels = new HashSet<>();
+
+    /** Set of all vehicle colors in the system */
+    private Set<String> vehicleColors = new HashSet<>();
+
+    /** Set of all vehicle types in the system */
+    private Set<String> vehicleTypes = new HashSet<>();
+
     /**
      * Constructor
      */
@@ -40,6 +55,13 @@ public class RentalService {
      */
     public void loadVehicles() {
         vehicleMap = dbManager.getAllVehicles();
+        for (Map.Entry<Integer, Vehicle> entry : vehicleMap.entrySet()) {
+            Vehicle v = entry.getValue();
+            vehicleMakes.add(v.getMake());
+            vehicleModels.add(v.getModel());
+            vehicleColors.add(v.getColor());
+            vehicleTypes.add(v.getType());
+        }
     }
 
     /**
@@ -59,6 +81,37 @@ public class RentalService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Get all vehicle makes
+     * @return Set of make names
+     */
+    public Set<String> getAllMakes() {
+        return vehicleMakes;
+    }
+
+    /**
+     * Get all vehicle models
+     * @return Set of model names
+     */
+    public Set<String> getAllModels() {
+        return vehicleModels;
+    }
+
+    /**
+     * Get all vehicle colors
+     * @return Set of color names
+     */
+    public Set<String> getAllColors() {
+        return vehicleColors;
+    }
+
+    /**
+     * Get all types of vehicles
+     * @return Set of vehicle type names
+     */
+    public Set<String> getAllVehicleTypes() {
+        return vehicleTypes;
+    }
 
     /**
      * Get list of vehicles that meet requested trait requirements
@@ -76,13 +129,13 @@ public class RentalService {
                                              Optional<String> type) {
         return vehicleMap.values().stream() // for filters, check if param is defined, then compare accordingly
                 .filter(v -> !v.isTaken()
-                        && (make.isPresent() ? v.getMake().equalsIgnoreCase(make.get()) : true)
-                        && (model.isPresent() ? v.getColor().equalsIgnoreCase(model.get()) : true)
+                        && (make.isPresent() && !make.get().isEmpty() && !make.get().equalsIgnoreCase("Any")? v.getMake().equalsIgnoreCase(make.get()) : true)
+                        && (model.isPresent() && !model.get().isEmpty() && !model.get().equalsIgnoreCase("Any") ? v.getModel().equalsIgnoreCase(model.get()) : true)
                         && (year.isPresent() ? v.getYear() == year.get() : true)
-                        && (color.isPresent() ? v.getColor().equalsIgnoreCase(color.get()) : true)
+                        && (color.isPresent() && !color.get().isEmpty() && !color.get().equalsIgnoreCase("Any")? v.getColor().equalsIgnoreCase(color.get()) : true)
                         && (minCapacity.isPresent() ? v.getCapacity() >= minCapacity.get() : true)
-                        && (maxPrice.isPresent() ? Double.parseDouble(v.getPricePerDay()) <= Double.parseDouble(maxPrice.get()) : true)
-                        && (type.isPresent() ? v.getType().equalsIgnoreCase(type.get()) : true))
+                        && (maxPrice.isPresent() && !maxPrice.get().isEmpty() ? Double.parseDouble(v.getPricePerDay()) <= Double.parseDouble(maxPrice.get()) : true)
+                        && (type.isPresent() && !type.get().isEmpty() && !type.get().equalsIgnoreCase("Any")? v.getType().equalsIgnoreCase(type.get()) : true))
                 .collect(Collectors.toList());
     }
 

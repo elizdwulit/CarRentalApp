@@ -79,6 +79,7 @@ public class DatabaseManager {
                 v.setType(rs.getString("type"));
                 v.setTaken(rs.getBoolean("is_taken"));
                 v.setCurrentRenterId(rs.getInt("curr_user_id"));
+                v.setImgUrl(rs.getString("image"));
 
                 // add vehicle entry to map to be returned
                 allVehicles.put(v.getId(), v);
@@ -309,8 +310,8 @@ public class DatabaseManager {
         System.out.println("DatabaseManager.addVehicle -- BEGIN");
 
         int addedVehicleId = -1; // default -1
-        String sqlStr = "INSERT INTO vehicles (make, model, year, color, capacity, daily_price, type, is_taken, curr_user_id) "
-                + " VALUES (?, ?, ?, ?, ?, ?, ?, ? , ?) RETURNING id";
+        String sqlStr = "INSERT INTO vehicles (make, model, year, color, capacity, daily_price, type, is_taken, curr_user_id, image) "
+                + " VALUES (?, ?, ?, ?, ?, ?, ?, ? , ?, ?) RETURNING id";
         try {
             Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
             // Create statement to insert the vehicle into the db
@@ -325,6 +326,7 @@ public class DatabaseManager {
             pstmt.setString(++i, v.getType());
             pstmt.setBoolean(++i, false);
             pstmt.setInt(++i, -1);
+            pstmt.setString(++i, "");
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) { // get the resulting ID of the inserted row
                 addedVehicleId = rs.getInt("id");
