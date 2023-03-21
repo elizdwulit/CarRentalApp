@@ -108,11 +108,11 @@ public class DatabaseManager {
         System.out.println("DatabaseManager.setVehicleTaken -- Updating vehicle " + vehicleId + " with taken value " + takenStatus);
 
         boolean updateSuccessful = false;
-        String sqlStr = "UPDATE vehicles SET is_taken = ? AND curr_user_id = ? WHERE id = ?";
+        String sqlStr = "UPDATE vehicles SET is_taken = ?, curr_user_id = ? WHERE id = ?";
         try (Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
              PreparedStatement pstmt = conn.prepareStatement(sqlStr))
         {
-            pstmt.setInt(1, takenStatus ? 0 : 1);
+            pstmt.setBoolean(1, takenStatus);
             pstmt.setInt(2, userId);
             pstmt.setInt(3, vehicleId);
             pstmt.executeUpdate();
@@ -150,7 +150,8 @@ public class DatabaseManager {
             pstmt.setInt(3, vehicleId);
             pstmt.setDouble(4, amount);
             pstmt.setInt(5, transactionType);
-            addSuccessful = pstmt.execute();
+            pstmt.execute();
+            addSuccessful = true;
         } catch (Exception e) {
             System.out.println("DatabaseManager.addTransactionEntry -- Exception adding transaction entry");
             System.out.println(e);
@@ -348,7 +349,7 @@ public class DatabaseManager {
         System.out.println("DatabaseManager.deleteVehicle -- Deleting user with id=" + vehicleId);
 
         boolean deleteSuccessful = false;
-        String sqlStr = "DELETE FROM vehicles WHERE id = " + vehicleId + " AND curr_user > 0";
+        String sqlStr = "DELETE FROM vehicles WHERE id = " + vehicleId + " AND curr_user_id != 0";
         try(Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
             PreparedStatement st = conn.prepareStatement(sqlStr)) {
             st.executeUpdate();

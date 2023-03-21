@@ -168,52 +168,38 @@ public class RentalService {
     /**
      * Handles renting a vehicle
      *
-     * @param user User doing the rental
+     * @param userId ID of the user doing the rental
      * @param vehicleId id of the vehicle to rent
      * @param totalCost the total cost of the rental
-     * @return integer indicating if rent was successful
-     *      0 = success
-     *      1 = add user failed
-     *      2 = vehicle not found in system, or vehicle is already taken
-     *      3 = failed to update vehicle entry in db
-     *      4 = transaction failed
+     * @return true if rent successful, else false
      */
-    public int rentVehicle(User user, int vehicleId, double totalCost) {
+    public boolean rentVehicle(int userId, int vehicleId, double totalCost) {
         System.out.println("RentalService.rentVehicle -- BEGIN");
-
-        // First, add the new user to the database
-        // (Note 3/7/22 there are no user accounts feature currently implemented)
-        int addedUserId = dbManager.addUser(user);
-        if (addedUserId == -1) {
-            System.out.println("RentalService.rentVehicle -- Failed to add user entry.");
-            return 1;
-        }
-
         // Check if vehicle is still in system and available to be rented
         Vehicle foundVehicle = getVehicleFromId(vehicleId);
         if (foundVehicle == null || foundVehicle.isTaken()) {
             System.out.println("RentalService.rentVehicle -- Available vehicle not found in system for vid " + vehicleId);
-            return 2;
+            return false;
         }
 
         // Assign the vehicle in the db to the user
-        boolean updateVehicleSuccessful = dbManager.setVehicleTaken(foundVehicle.getId(), true, addedUserId);
+        boolean updateVehicleSuccessful = dbManager.setVehicleTaken(foundVehicle.getId(), true, userId);
         if (!updateVehicleSuccessful) {
             System.out.println("RentalService.rentVehicle -- Failed to update vehicle entry for vid " + vehicleId);
-            return 3;
+            return false;
         }
 
         // TODO: Add actual payment handling. Currently not in scope of prototype (3/7/22)
         //transactionManager.pay();
-        boolean transactionSuccess = dbManager.addTransactionEntry(addedUserId, vehicleId, totalCost, TransactionManager.TRANSACTION_TYPE_BUY);
+        boolean transactionSuccess = dbManager.addTransactionEntry(userId, vehicleId, totalCost, TransactionManager.TRANSACTION_TYPE_BUY);
         if (!transactionSuccess) {
             System.out.println("RentalService.rentVehicle -- Failed to make transaction.");
-            return 4;
+            return false;
         }
 
-        System.out.println("RentalService.rentVehicle -- Successfully rented vehicle " + vehicleId + " to user " + addedUserId);
+        System.out.println("RentalService.rentVehicle -- Successfully rented vehicle " + vehicleId + " to user " + userId);
         System.out.println("RentalService.rentVehicle -- END");
-        return 0;
+        return true;
     }
 
     /**

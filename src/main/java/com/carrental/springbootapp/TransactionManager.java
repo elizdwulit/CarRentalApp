@@ -5,6 +5,7 @@
 /////////////////////////////////////////////////////////
 package com.carrental.springbootapp;
 
+import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
@@ -19,6 +20,9 @@ public class TransactionManager {
 
     /** ID of type indicating a return-type transaction (i.e: returning a vehicle) */
     public static final int TRANSACTION_TYPE_RETURN = 0;
+
+    /** The format used for time ranges */
+    private static final String TIMERANGE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     /**
      * Constructor
@@ -39,12 +43,14 @@ public class TransactionManager {
 
     /**
      * Get the total cost for renting a vehicle
-     * @param vehicle
-     * @return
+     * @param vehicle the vehicle to get the cost for
+     * @param startDateStr The start date of rental period
+     * @param endDateStr The end date of the rental period
+     * @return double representing total cost for rental period
      */
-    public double getTotalCost(Vehicle vehicle, String startDate, String endDate) {
-        // get the num of days vehicle will be rented for
-        long numDays = getNumDaysBetweenDates(startDate, endDate);
+    public double getTotalCost(Vehicle vehicle, String startDateStr, String endDateStr) {
+        // get the number of days between the start and end date (Note: Time is currently not considered)
+        long numDays = getNumDaysBetweenDates(startDateStr, endDateStr);
 
         // get daily rate for vehicle
         double vehicleDailyRate = Double.parseDouble(vehicle.getPricePerDay());
@@ -61,18 +67,26 @@ public class TransactionManager {
      * @return number of days between dates
      */
     private long getNumDaysBetweenDates(String startDateStr, String endDateStr) {
-        // parse the start date
-        Date startDate = new Date(startDateStr);
-        Calendar startDateCal = Calendar.getInstance();
-        startDateCal.setTime(startDate);
+        long numDays = 0;
+        try {
+            // get the num of days vehicle will be rented for
+            SimpleDateFormat formatter = new SimpleDateFormat(TIMERANGE_DATE_FORMAT);
+            Date startDate = formatter.parse(startDateStr);
+            Date endDate = formatter.parse(endDateStr);
 
-        // parse the end date
-        Date endDate = new Date(endDateStr);
-        Calendar endDateCal = Calendar.getInstance();
-        endDateCal.setTime(endDate);
+            // parse the start date
+            Calendar startDateCal = Calendar.getInstance();
+            startDateCal.setTime(startDate);
 
-        long numDays = ChronoUnit.DAYS.between(startDateCal.toInstant(), endDateCal.toInstant());
+            // parse the end date
+            Calendar endDateCal = Calendar.getInstance();
+            endDateCal.setTime(endDate);
 
+            numDays = ChronoUnit.DAYS.between(startDateCal.toInstant(), endDateCal.toInstant());
+        } catch (Exception e) {
+            System.out.println("TransactionManager.getNumDaysBetweenDates -- Exception parsing dates");
+            System.out.println(e);
+        }
         return numDays;
     }
 }

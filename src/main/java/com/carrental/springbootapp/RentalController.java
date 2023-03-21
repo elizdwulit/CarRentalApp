@@ -137,38 +137,34 @@ public class RentalController {
      */
     @CrossOrigin(maxAge = 3600)
     @GetMapping("/getTotalCost")
-    public double getTotalCost(
-            @RequestParam("vehicleId") int vid,
+    public String getTotalCost(
+            @RequestParam("vid") int vid,
             @RequestParam("startDate") String startDate,
             @RequestParam("endDate") String endDate) {
         Vehicle foundVehicle = rentalService.getVehicleFromId(vid);
         double calculatedPrice = transactionManager.getTotalCost(foundVehicle, startDate, endDate);
-        return calculatedPrice;
+
+        return String.format("%.2f", calculatedPrice);
     }
 
     /**
      * Endpoint used to rent a vehicle
      * @param queryParameters request query parameters
-     * @return int representing results of rent action, 0 indicates success
+     * @return true if rent successful, else false
      */
     @CrossOrigin(maxAge = 3600)
-    @PostMapping(path = "/rent", produces = {"text/plain", "application/*"})
-    public int rentVehicle(@RequestParam Map<String, String> queryParameters) {
-        int rentResult  = -1;
+    @PostMapping(path = "/rentVehicle", produces = {"text/plain", "application/*"})
+    public boolean rentVehicle(@RequestParam Map<String, String> queryParameters) {
         try {
-            String firstName = queryParameters.get("fname");
-            String lastName = queryParameters.get("lname");
-            String email = queryParameters.get("email");
-            String phoneNum = queryParameters.get("phonenum");
+            int userId = Integer.parseInt(queryParameters.get("userid"));
             int vid = Integer.parseInt(queryParameters.get("vid"));
             double totalCost = Double.parseDouble(queryParameters.get("totalcost"));
-            User user = new User(firstName, lastName, email, phoneNum);
-            rentResult = rentalService.rentVehicle(user, vid, totalCost);
+            return rentalService.rentVehicle(userId, vid, totalCost);
         } catch (Exception e) {
             System.out.println("RentalController.rentVehicle -- Exception renting vehicle");
             System.out.println(e);
         }
-        return rentResult;
+        return false;
     }
 
     /**
@@ -267,18 +263,18 @@ public class RentalController {
     /**
      * Endpoint to add a user to the system
      * @param queryParameters Query Parameters
-     * @return true if add successful, else false
+     * @return id of added user
      */
     @CrossOrigin(maxAge = 3600)
     @PostMapping(path = "/addUser", produces = {"text/plain", "application/*"})
-    public boolean addUser(@RequestParam Map<String, String> queryParameters) {
+    public int addUser(@RequestParam Map<String, String> queryParameters) {
         String fname = queryParameters.get("fname");
         String lname = queryParameters.get("lname");
         String email = queryParameters.get("email");
         String phoneNum = queryParameters.get("phoneNum");
         User newUser = adminManager.addUser(fname, lname, email, phoneNum);
         rentalService.loadUsers();
-        return newUser != null;
+        return newUser.getId();
     }
 
     /**
