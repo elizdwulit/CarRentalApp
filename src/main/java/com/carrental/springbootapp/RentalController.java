@@ -163,8 +163,8 @@ public class RentalController {
         } catch (Exception e) {
             System.out.println("RentalController.rentVehicle -- Exception renting vehicle");
             System.out.println(e);
+            return -1;
         }
-        return false;
     }
 
     /**
