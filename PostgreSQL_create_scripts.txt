@@ -41,9 +41,6 @@ CREATE TABLE transaction_history
     user_id             INT,
     vehicle_id          INT,
     total_amount        DECIMAL(10,2),
-    rental_begin_date   DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    rental_due_date     DATE NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id)
+    transaction_type	INT
 );
 

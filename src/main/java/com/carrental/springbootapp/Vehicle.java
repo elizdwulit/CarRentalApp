@@ -41,7 +41,7 @@ public class Vehicle {
     private int currentRenterId;
 
     /** The url to an image of the vehicle */
-    private String imgUrl;
+    private String imgUrl = "none.jpg";
 
     /**
      * Empty constructor

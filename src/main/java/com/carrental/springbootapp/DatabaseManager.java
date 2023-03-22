@@ -6,6 +6,7 @@
 package com.carrental.springbootapp;
 
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -27,6 +28,8 @@ public class DatabaseManager {
     private String dbConnStr;
 
     private Properties dbConnProps = new Properties();
+
+    private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 
     /**
      * Empty private constructor used for singleton instance
@@ -133,32 +136,34 @@ public class DatabaseManager {
      * @param userId id of user that made purchase
      * @param vehicleId id of vehicle that was rented
      * @param amount amount associated with the transaction
-     * @return true if entry successfully adeded, else false
+     * @return id of transaction entry, -1 if transaction failed
      */
-    public boolean addTransactionEntry(int userId, int vehicleId, double amount, int transactionType) {
+    public int addTransactionEntry(int userId, int vehicleId, double amount, int transactionType) {
         System.out.println("DatabaseManager.addTransactionEntry -- BEGIN");
         System.out.println("DatabaseManager.addTransactionEntry -- Add transaction entry [userId=" + userId + ", vehicleId=" + vehicleId + ", amount=" + amount + "]");
 
-        boolean addSuccessful = false;
-
-        String sqlStr = "INSERT INTO transaction_history (timestamp, user_id, vehicle_id, total_amount, transaction_type) "
-                + " VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
-            PreparedStatement pstmt = conn.prepareStatement(sqlStr)) {
-            pstmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
-            pstmt.setInt(2, userId);
-            pstmt.setInt(3, vehicleId);
-            pstmt.setDouble(4, amount);
-            pstmt.setInt(5, transactionType);
-            pstmt.execute();
-            addSuccessful = true;
+        int transactionId = -1;
+        String sqlStr = "INSERT INTO transaction_history (user_id, vehicle_id, total_amount, transaction_type) "
+                + " VALUES (?, ?, ?, ?) RETURNING id";
+        try {
+            Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
+            PreparedStatement pstmt = conn.prepareStatement(sqlStr);
+            int i = 0;
+            pstmt.setInt(++i, userId);
+            pstmt.setInt(++i, vehicleId);
+            pstmt.setDouble(++i, amount);
+            pstmt.setInt(++i, transactionType);
+            ResultSet rs = pstmt.executeQuery();
+            while(rs.next()) { // get the resulting ID of the inserted row
+                transactionId = rs.getInt("id");
+            }
         } catch (Exception e) {
             System.out.println("DatabaseManager.addTransactionEntry -- Exception adding transaction entry");
             System.out.println(e);
         }
 
         System.out.println("DatabaseManager.addTransactionEntry -- END");
-        return addSuccessful;
+        return transactionId;
     }
 
 
@@ -326,8 +331,8 @@ public class DatabaseManager {
             pstmt.setDouble(++i, Double.parseDouble(v.getPricePerDay()));
             pstmt.setString(++i, v.getType());
             pstmt.setBoolean(++i, false);
-            pstmt.setInt(++i, -1);
-            pstmt.setString(++i, "");
+            pstmt.setInt(++i, 0);
+            pstmt.setString(++i, v.getImgUrl());
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) { // get the resulting ID of the inserted row
                 addedVehicleId = rs.getInt("id");
@@ -349,7 +354,7 @@ public class DatabaseManager {
         System.out.println("DatabaseManager.deleteVehicle -- Deleting user with id=" + vehicleId);
 
         boolean deleteSuccessful = false;
-        String sqlStr = "DELETE FROM vehicles WHERE id = " + vehicleId + " AND curr_user_id != 0";
+        String sqlStr = "DELETE FROM vehicles WHERE id = " + vehicleId;
         try(Connection conn = DriverManager.getConnection(dbConnStr, dbConnProps);
             PreparedStatement st = conn.prepareStatement(sqlStr)) {
             st.executeUpdate();

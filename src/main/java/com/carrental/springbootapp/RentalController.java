@@ -150,11 +150,11 @@ public class RentalController {
     /**
      * Endpoint used to rent a vehicle
      * @param queryParameters request query parameters
-     * @return true if rent successful, else false
+     * @return id of transaction entry, -1 if transaction failed
      */
     @CrossOrigin(maxAge = 3600)
     @PostMapping(path = "/rentVehicle", produces = {"text/plain", "application/*"})
-    public boolean rentVehicle(@RequestParam Map<String, String> queryParameters) {
+    public int rentVehicle(@RequestParam Map<String, String> queryParameters) {
         try {
             int userId = Integer.parseInt(queryParameters.get("userid"));
             int vid = Integer.parseInt(queryParameters.get("vid"));
@@ -194,7 +194,8 @@ public class RentalController {
      */
     @CrossOrigin(maxAge = 3600)
     @PostMapping(path = "/addVehicle", produces = {"text/plain", "application/*"})
-    public boolean addVehicle(@RequestParam Map<String, String> queryParameters) {
+    public int addVehicle(@RequestParam Map<String, String> queryParameters) {
+        int vid = -1;
         try {
             String make = queryParameters.get("make");
             String model = queryParameters.get("model");
@@ -205,12 +206,12 @@ public class RentalController {
             String type = queryParameters.get("type");
             Vehicle newVehicle = adminManager.addVehicle(make, model, year, color, capacity, pricePerDay, type);
             rentalService.loadVehicles();
+            vid = newVehicle.getId();
         } catch (Exception e) {
             System.out.println("RentalController.addVehicle -- Exception adding vehicle");
             System.out.println(e);
-            return false;
         }
-        return true;
+        return vid;
     }
 
     /**

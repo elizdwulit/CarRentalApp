@@ -5,7 +5,6 @@
 /////////////////////////////////////////////////////////
 package com.carrental.springbootapp;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -171,35 +170,38 @@ public class RentalService {
      * @param userId ID of the user doing the rental
      * @param vehicleId id of the vehicle to rent
      * @param totalCost the total cost of the rental
-     * @return true if rent successful, else false
+     * @return id of transaction, -1 if transaction failed
      */
-    public boolean rentVehicle(int userId, int vehicleId, double totalCost) {
+    public int rentVehicle(int userId, int vehicleId, double totalCost) {
         System.out.println("RentalService.rentVehicle -- BEGIN");
+
+        int transactionId = -1;
+
         // Check if vehicle is still in system and available to be rented
         Vehicle foundVehicle = getVehicleFromId(vehicleId);
         if (foundVehicle == null || foundVehicle.isTaken()) {
             System.out.println("RentalService.rentVehicle -- Available vehicle not found in system for vid " + vehicleId);
-            return false;
+            return transactionId;
         }
 
         // Assign the vehicle in the db to the user
         boolean updateVehicleSuccessful = dbManager.setVehicleTaken(foundVehicle.getId(), true, userId);
         if (!updateVehicleSuccessful) {
             System.out.println("RentalService.rentVehicle -- Failed to update vehicle entry for vid " + vehicleId);
-            return false;
+            return transactionId;
         }
 
         // TODO: Add actual payment handling. Currently not in scope of prototype (3/7/22)
         //transactionManager.pay();
-        boolean transactionSuccess = dbManager.addTransactionEntry(userId, vehicleId, totalCost, TransactionManager.TRANSACTION_TYPE_BUY);
-        if (!transactionSuccess) {
+        transactionId = dbManager.addTransactionEntry(userId, vehicleId, totalCost, TransactionManager.TRANSACTION_TYPE_BUY);
+        if (transactionId == -1) {
             System.out.println("RentalService.rentVehicle -- Failed to make transaction.");
-            return false;
+            return transactionId;
         }
 
         System.out.println("RentalService.rentVehicle -- Successfully rented vehicle " + vehicleId + " to user " + userId);
         System.out.println("RentalService.rentVehicle -- END");
-        return true;
+        return transactionId;
     }
 
     /**
@@ -227,8 +229,8 @@ public class RentalService {
         }
 
         // Add transaction entry for history saving purposes (TODO: Separate into different table)
-        boolean transactionSuccess = dbManager.addTransactionEntry(userId, vehicleId, 0.0, TransactionManager.TRANSACTION_TYPE_RETURN);
-        if (!transactionSuccess) {
+        int transactionId = dbManager.addTransactionEntry(userId, vehicleId, 0.0, TransactionManager.TRANSACTION_TYPE_RETURN);
+        if (transactionId == -1) {
             System.out.println("RentalService.returnVehicle -- Failed to make transaction.");
             return false;
         }
