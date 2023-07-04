@@ -6,6 +6,8 @@ The Frontend counterpart of this Java project can be found here: https://github.
 ## Project Overview
 The Car Rental App project implements a RESTful API using the Spring Boot framework. It interacts with an online database to maintain records of vehicle information, user information, and transaction history.
 
+*NOTE: As of June 2023, the online database bit.io is no longer available. If this app is to be used in the future, the code must be refactored to use another PostgreSQL database.*
+
 ## How to Run
 With the entire repository cloned, the "SpringBootApplication.java" file can be run to start the server.
 All API endpoints can be used with an endpoint explorer like Postman.
