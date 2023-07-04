@@ -1,7 +1,9 @@
 # CarRentalApp
 This repository hosts the backend for the DJS Rental System prototype. It can be used as a standalone API or in conjunction with the DJS-Rental-Car project, which implements a frontend using Vue.js.
 
-The Frontend counterpart of this Java project can be found here: https://github.com/msingh1927/DJS-Rental-Car
+The Frontend counterpart of this Java project can be found here: https://github.com/elizdwulit/CarRentalAppFrontend 
+(duplicated from original repository that I authored, located here: https://github.com/msingh1927/DJS-Rental-Car)
+
 
 ## Project Overview
 The Car Rental App project implements a RESTful API using the Spring Boot framework. It interacts with an online database to maintain records of vehicle information, user information, and transaction history.
